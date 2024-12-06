@@ -13,7 +13,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f5f5f5; /* Optional: Light background */
+      background-color: #f5f5f5; /* Light background */
     }
 
     /* Main Content Container */
@@ -383,75 +383,102 @@
       spinner.style.display = 'none';
     }
 
-    // Preview Button Click Handler
-    previewBtn.addEventListener('click', async function() {
-      showFeedback('Generating PDF preview...', 'success');
+    // Function to generate PDF bytes
+    async function generatePDFBytes() {
       try {
-        // Simulate PDF generation delay (remove in production)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Get the input values
+        const eventDate = eventDateInput.value.trim();
+        const bookingMessage = bookingMessageInput.value.trim();
+        const submissionDate = getFormattedSubmissionDate();
 
-        // Implement your PDF generation logic here using pdf-lib
-        // For demonstration, we'll create a simple PDF with the booking message
+        if (!eventDate || !bookingMessage) {
+          showFeedback("Please fill in both Event Date and Booking Request Message.", "error");
+          return null;
+        }
 
-        const { PDFDocument, StandardFonts, rgb } = PDFLib;
-        const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([600, 400]);
-        const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const text = document.getElementById('bookingMessage').value || 'No booking message provided.';
-        page.drawText(text, {
-          x: 50,
-          y: 350,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0, 0, 0),
-        });
+        // Fetch the template PDF
+        const response = await fetch('template.pdf');
+        if (!response.ok) {
+          showFeedback("Failed to fetch the template PDF. Please ensure 'template.pdf' is correctly hosted.", "error");
+          console.error("Error fetching template.pdf:", response.statusText);
+          return null;
+        }
+        const templateBytes = await response.arrayBuffer();
+
+        const { PDFDocument } = PDFLib;
+        const pdfDoc = await PDFDocument.load(templateBytes);
+        const form = pdfDoc.getForm();
+
+        // Attempt to get form fields
+        const eventDateField = form.getTextField('EventDateField');
+        const submissionDateField = form.getTextField('SubmissionDateField');
+        const annexureField = form.getTextField('AnnexureField');
+
+        // Verify that fields exist
+        if (!eventDateField || !submissionDateField || !annexureField) {
+          showFeedback("One or more form fields are missing in the template PDF.", "error");
+          console.error("Form fields not found. Please verify field names in 'template.pdf'.");
+          return null;
+        }
+
+        // Fill the fields
+        eventDateField.setText(eventDate);
+        submissionDateField.setText(submissionDate);
+        annexureField.setText(bookingMessage);
+
+        // Flatten the form to make the fields non-editable
+        form.flatten();
+
+        // Save PDF bytes
         const pdfBytes = await pdfDoc.save();
-        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-        pdfPreview.src = pdfUrl;
+        return pdfBytes;
 
-        showFeedback('PDF preview generated successfully.', 'success');
-        downloadBtn.style.display = 'inline-block'; // Show Download button after preview
       } catch (error) {
-        console.error('Error generating PDF preview:', error);
-        showFeedback('Failed to generate PDF preview.', 'error');
+        showFeedback("An unexpected error occurred during PDF generation.", "error");
+        console.error("Error in generatePDFBytes:", error);
+        return null;
       }
+    }
+
+    // Preview Button Click Handler
+    previewBtn.addEventListener('click', async () => {
+      // Hide previous feedback messages
+      showFeedback("Generating PDF preview...", "success");
+
+      const pdfBytes = await generatePDFBytes();
+      if (!pdfBytes) return;
+      currentPdfBytes = pdfBytes;
+
+      // Show the PDF in the iframe
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      pdfPreview.src = url;
+
+      // Show the download button now that we have a valid preview
+      downloadBtn.style.display = 'inline-block';
     });
 
     // Download Button Click Handler
-    downloadBtn.addEventListener('click', async function() {
-      showSpinner(downloadSpinner);
-      showFeedback('Generating PDF for download...', 'success');
-      try {
-        // Implement your PDF generation logic here using pdf-lib
-        const { PDFDocument, StandardFonts, rgb } = PDFLib;
-        const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([600, 400]);
-        const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const text = document.getElementById('bookingMessage').value || 'No booking message provided.';
-        page.drawText(text, {
-          x: 50,
-          y: 350,
-          size: 12,
-          font: helveticaFont,
-          color: rgb(0, 0, 0),
-        });
-        const pdfBytes = await pdfDoc.save();
-
-        // Trigger download
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'BookingForm.pdf';
-        link.click();
-
-        hideSpinner(downloadSpinner);
-        showFeedback('PDF downloaded successfully.', 'success');
-      } catch (error) {
-        console.error('Error downloading PDF:', error);
-        hideSpinner(downloadSpinner);
-        showFeedback('Failed to download PDF.', 'error');
+    downloadBtn.addEventListener('click', () => {
+      if (!currentPdfBytes) {
+        showFeedback("No PDF available to download. Please generate a preview first.", "error");
+        return;
       }
+
+      // Use the event date to build the filename
+      const eventDate = eventDateInput.value.trim();
+      const formattedEventDate = eventDate.replace(/\s+/g, ''); // Remove all spaces
+      const filename = `NP_CCAB_Booking_${formattedEventDate}.pdf`;
+
+      const blob = new Blob([currentPdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showFeedback("PDF downloaded successfully.", "success");
     });
   </script>
 </body>
