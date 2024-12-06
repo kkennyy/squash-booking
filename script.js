@@ -1,3 +1,4 @@
+// Get DOM Elements
 const previewBtn = document.getElementById('previewBtn');
 const downloadBtn = document.getElementById('downloadBtn');
 const eventDateInput = document.getElementById('eventDate');
@@ -15,40 +16,93 @@ function getFormattedSubmissionDate() {
   return `${day} ${month} ${year}`; 
 }
 
-async function generatePDFBytes() {
-  // Get the input values
-  const eventDate = eventDateInput.value.trim();
-  const bookingMessage = bookingMessageInput.value.trim();
-  const submissionDate = getFormattedSubmissionDate();
-
-  if (!eventDate || !bookingMessage) {
-    alert("Please fill in both Event Date and Booking Request Message.");
-    return null;
-  }
-
-  // Fetch the template PDF
-  const templateBytes = await fetch('template.pdf').then(res => res.arrayBuffer());
-
-  const { PDFDocument } = PDFLib;
-  const pdfDoc = await PDFDocument.load(templateBytes);
-  const form = pdfDoc.getForm();
-
-  // Fill the fields. Make sure these field names match your template's fields.
-  // For example, if your fields are named:
-  // "EventDateField", "SubmissionDateField", and "AnnexureField"
-  form.getTextField('EventDateField').setText(eventDate);
-  form.getTextField('SubmissionDateField').setText(submissionDate);
-  form.getTextField('AnnexureField').setText(bookingMessage);
-
-  // Flatten the form
-  form.flatten();
-
-  // Save PDF bytes
-  const pdfBytes = await pdfDoc.save();
-  return pdfBytes;
+// Function to hash the password using SHA-256
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
 }
 
+async function generatePDFBytes() {
+  try {
+    // Get the input values
+    const eventDate = eventDateInput.value.trim();
+    const bookingMessage = bookingMessageInput.value.trim();
+    const submissionDate = getFormattedSubmissionDate();
+
+    if (!eventDate || !bookingMessage) {
+      showFeedback("Please fill in both Event Date and Booking Request Message.", "error");
+      return null;
+    }
+
+    // Fetch the template PDF
+    const response = await fetch('template.pdf');
+    if (!response.ok) {
+      showFeedback("Failed to fetch the template PDF. Please ensure 'template.pdf' is correctly hosted.", "error");
+      console.error("Error fetching template.pdf:", response.statusText);
+      return null;
+    }
+    const templateBytes = await response.arrayBuffer();
+
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.load(templateBytes);
+    const form = pdfDoc.getForm();
+
+    // Attempt to get form fields
+    const eventDateField = form.getTextField('EventDateField');
+    const submissionDateField = form.getTextField('SubmissionDateField');
+    const annexureField = form.getTextField('AnnexureField');
+
+    // Verify that fields exist
+    if (!eventDateField || !submissionDateField || !annexureField) {
+      showFeedback("One or more form fields are missing in the template PDF.", "error");
+      console.error("Form fields not found. Please verify field names in 'template.pdf'.");
+      return null;
+    }
+
+    // Fill the fields
+    eventDateField.setText(eventDate);
+    submissionDateField.setText(submissionDate);
+    annexureField.setText(bookingMessage);
+
+    // Flatten the form to make the fields non-editable
+    form.flatten();
+
+    // Save PDF bytes
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+
+  } catch (error) {
+    showFeedback("An unexpected error occurred during PDF generation.", "error");
+    console.error("Error in generatePDFBytes:", error);
+    return null;
+  }
+}
+
+// Function to show feedback messages
+function showFeedback(message, type) {
+  const feedbackMessage = document.getElementById('feedbackMessage');
+  feedbackMessage.textContent = message;
+  feedbackMessage.className = 'feedback-message';
+  if (type === 'success') {
+    feedbackMessage.classList.add('feedback-success');
+  } else if (type === 'error') {
+    feedbackMessage.classList.add('feedback-error');
+  }
+  feedbackMessage.style.display = 'block';
+  setTimeout(() => {
+    feedbackMessage.style.display = 'none';
+  }, 5000); // Hide after 5 seconds
+}
+
+// Preview Button Click Handler
 previewBtn.addEventListener('click', async () => {
+  // Hide previous feedback messages
+  showFeedback("Generating PDF preview...", "success");
+  
   const pdfBytes = await generatePDFBytes();
   if (!pdfBytes) return;
   currentPdfBytes = pdfBytes;
@@ -62,13 +116,17 @@ previewBtn.addEventListener('click', async () => {
   downloadBtn.style.display = 'inline-block';
 });
 
+// Download Button Click Handler
 downloadBtn.addEventListener('click', () => {
-  if (!currentPdfBytes) return;
+  if (!currentPdfBytes) {
+    showFeedback("No PDF available to download. Please generate a preview first.", "error");
+    return;
+  }
 
   // Use the event date to build the filename
   const eventDate = eventDateInput.value.trim();
   const formattedEventDate = eventDate.replace(/\s+/g, ''); // Remove all spaces
-  const filename = "NP_CCAB_Booking_" + formattedEventDate + ".pdf";
+  const filename = `NP_CCAB_Booking_${formattedEventDate}.pdf`;
 
   const blob = new Blob([currentPdfBytes], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
@@ -77,4 +135,6 @@ downloadBtn.addEventListener('click', () => {
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+
+  showFeedback("PDF downloaded successfully.", "success");
 });
