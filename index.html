@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Squash Court Booking PDF Generator</title>
   <style>
+    /* Your existing styles */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -65,29 +66,114 @@
       flex: 1;
       margin-top: 1em;
     }
+
+    /* Hide the main content initially */
+    #mainContent {
+      display: none;
+    }
+
+    /* Style for the password modal */
+    #passwordModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #passwordModal div {
+      background: #fff;
+      padding: 2em;
+      border-radius: 5px;
+      text-align: center;
+    }
+    #passwordModal input {
+      width: 80%;
+      padding: 0.5em;
+      margin-top: 1em;
+      font-size: 16px;
+    }
+    #passwordModal button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-<div class="left-panel">
-  <h1>Generate Monthly Booking Form</h1>
-  <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
-  <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
+  <!-- Password Modal -->
+  <div id="passwordModal">
+    <div>
+      <h2>Enter Password</h2>
+      <input type="password" id="passwordInput" placeholder="Password" />
+      <br />
+      <button id="passwordSubmit">Submit</button>
+      <p id="passwordError" style="color:red; display:none;">Incorrect Password. Try again.</p>
+    </div>
+  </div>
 
-  <label for="bookingMessage">Booking Request Message:</label>
-  <textarea id="bookingMessage" placeholder="Enter your booking message here..."></textarea>
+  <!-- Main Content -->
+  <div id="mainContent">
+    <div class="left-panel">
+      <h1>Generate Monthly Booking Form</h1>
+      <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
+      <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
 
-  <button id="previewBtn">Preview</button>
-  <button id="downloadBtn" style="display:none;">Download PDF</button>
-</div>
+      <label for="bookingMessage">Booking Request Message:</label>
+      <textarea id="bookingMessage" placeholder="Enter your booking message here..."></textarea>
 
-<div class="right-panel">
-  <h2>Preview</h2>
-  <iframe id="pdfPreview" title="PDF Preview"></iframe>
-</div>
+      <button id="previewBtn">Preview</button>
+      <button id="downloadBtn" style="display:none;">Download PDF</button>
+    </div>
 
-<!-- Load pdf-lib from CDN -->
-<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-<script src="script.js"></script>
+    <div class="right-panel">
+      <h2>Preview</h2>
+      <iframe id="pdfPreview" title="PDF Preview"></iframe>
+    </div>
+  </div>
+
+  <!-- Load pdf-lib from CDN -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="script.js"></script>
+
+  <!-- Password Protection Script -->
+  <!-- Add this script instead of the previous password script -->
+<script>
+  // SHA-256 hash of "YourSecurePassword"
+  const correctPasswordHash = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // Example hash
+
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return hashHex;
+  }
+
+  document.getElementById('passwordSubmit').addEventListener('click', async function() {
+    const enteredPassword = document.getElementById('passwordInput').value;
+    const enteredHash = await sha256(enteredPassword);
+    if (enteredHash === correctPasswordHash) {
+      document.getElementById('passwordModal').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'flex';
+    } else {
+      document.getElementById('passwordError').style.display = 'block';
+    }
+  });
+
+  // Optional: Allow pressing Enter to submit password
+  document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('passwordSubmit').click();
+    }
+  });
+</script>
+
 </body>
 </html>
