@@ -95,8 +95,15 @@
       transition: background-color 0.3s ease;
     }
 
-    button:hover {
+    button:hover, button:focus {
       background-color: #0056b3;
+      outline: none; /* Remove default outline */
+    }
+
+    /* Focus Indicators */
+    button:focus, input:focus, textarea:focus {
+      outline: 2px solid #0056b3;
+      outline-offset: 2px;
     }
 
     /* Preview Iframe */
@@ -152,8 +159,9 @@
       transition: background-color 0.3s ease;
     }
 
-    #passwordModal button:hover {
+    #passwordModal button:hover, #passwordModal button:focus {
       background-color: #218838;
+      outline: none; /* Remove default outline */
     }
 
     #passwordError {
@@ -256,8 +264,8 @@
 
   <!-- Password Protection and Enhanced Features Script -->
   <script>
-    // Define your password
-    const correctPassword = "YourSecurePassword"; // Change this to your desired password
+    // Define your password hash (SHA-256)
+    const correctPasswordHash = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // Provided hash
 
     // Password Modal Elements
     const passwordModal = document.getElementById('passwordModal');
@@ -293,8 +301,8 @@
             }
           }
         } else if (e.key === 'Escape') {
-          // Optional: Close modal on Escape
-          // Uncomment the following lines if you want to allow closing the modal with Escape
+          // Optional: Prevent closing modal with Escape
+          // To enable, uncomment the following lines
           // passwordModal.style.display = 'none';
           // mainContent.style.display = 'flex';
           // mainContent.querySelector('input, textarea, button').focus();
@@ -310,14 +318,33 @@
     // Set initial focus to the password input when modal opens
     passwordInput.focus();
 
+    // Function to hash the password using SHA-256
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
     // Password Submission Handler
-    passwordSubmit.addEventListener('click', function() {
+    passwordSubmit.addEventListener('click', async function() {
       const enteredPassword = passwordInput.value;
-      if (enteredPassword === correctPassword) {
+      if (!enteredPassword) {
+        passwordError.textContent = "Please enter a password.";
+        passwordError.style.display = 'block';
+        passwordInput.setAttribute('aria-invalid', 'true');
+        passwordInput.focus();
+        return;
+      }
+      const enteredHash = await hashPassword(enteredPassword);
+      if (enteredHash === correctPasswordHash) {
         passwordModal.style.display = 'none';
         mainContent.style.display = 'flex';
         mainContent.querySelector('input, textarea, button').focus(); // Set focus to first interactive element
       } else {
+        passwordError.textContent = "Incorrect Password. Try again.";
         passwordError.style.display = 'block';
         passwordInput.setAttribute('aria-invalid', 'true');
         passwordInput.focus();
@@ -360,9 +387,7 @@
     previewBtn.addEventListener('click', async function() {
       showFeedback('Generating PDF preview...', 'success');
       try {
-        // Show a temporary loading indicator (optional)
-        // You can create another spinner if desired
-        // Simulate PDF generation delay
+        // Simulate PDF generation delay (remove in production)
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Implement your PDF generation logic here using pdf-lib
@@ -386,6 +411,7 @@
         pdfPreview.src = pdfUrl;
 
         showFeedback('PDF preview generated successfully.', 'success');
+        downloadBtn.style.display = 'inline-block'; // Show Download button after preview
       } catch (error) {
         console.error('Error generating PDF preview:', error);
         showFeedback('Failed to generate PDF preview.', 'error');
