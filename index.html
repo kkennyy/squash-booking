@@ -163,6 +163,38 @@
       font-size: 14px;
     }
 
+    /* Loading Spinner */
+    .spinner {
+      border: 4px solid #f3f3f3; /* Light grey */
+      border-top: 4px solid #007BFF; /* Blue */
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 2s linear infinite;
+      display: none; /* Hidden by default */
+      margin-left: 0.5em;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Feedback Messages */
+    .feedback-message {
+      margin-top: 1em;
+      font-size: 14px;
+      display: none;
+    }
+
+    .feedback-success {
+      color: green;
+    }
+
+    .feedback-error {
+      color: red;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       #mainContent {
@@ -181,10 +213,10 @@
 <body>
 
   <!-- Password Modal -->
-  <div id="passwordModal">
+  <div id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle" aria-modal="true">
     <div>
-      <h2>Enter Password</h2>
-      <input type="password" id="passwordInput" placeholder="Password" />
+      <h2 id="passwordModalTitle">Enter Password</h2>
+      <input type="password" id="passwordInput" placeholder="Password" aria-label="Password" />
       <br />
       <button id="passwordSubmit">Submit</button>
       <p id="passwordError">Incorrect Password. Try again.</p>
@@ -199,12 +231,17 @@
       <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
 
       <label for="bookingMessage">Booking Request Message:</label>
-      <textarea id="bookingMessage" placeholder="Enter your booking message here..."></textarea>
+      <textarea id="bookingMessage" placeholder="Enter your booking message here..." aria-label="Booking Request Message"></textarea>
 
       <div class="button-container">
         <button id="previewBtn">Preview</button>
-        <button id="downloadBtn" style="display:none;">Download PDF</button>
+        <div style="display: flex; align-items: center;">
+          <button id="downloadBtn" style="display:none;">Download PDF</button>
+          <div class="spinner" id="downloadSpinner"></div>
+        </div>
       </div>
+
+      <div class="feedback-message" id="feedbackMessage"></div>
     </div>
 
     <div class="right-panel">
@@ -215,27 +252,179 @@
 
   <!-- Load pdf-lib from CDN -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="script.js"></script>
+  <!-- No external script.js; integrated script below -->
 
-  <!-- Password Protection Script -->
+  <!-- Password Protection and Enhanced Features Script -->
   <script>
     // Define your password
     const correctPassword = "YourSecurePassword"; // Change this to your desired password
 
-    document.getElementById('passwordSubmit').addEventListener('click', function() {
-      const enteredPassword = document.getElementById('passwordInput').value;
+    // Password Modal Elements
+    const passwordModal = document.getElementById('passwordModal');
+    const passwordInput = document.getElementById('passwordInput');
+    const passwordSubmit = document.getElementById('passwordSubmit');
+    const passwordError = document.getElementById('passwordError');
+
+    // Main Content Elements
+    const mainContent = document.getElementById('mainContent');
+    const previewBtn = document.getElementById('previewBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const downloadSpinner = document.getElementById('downloadSpinner');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const pdfPreview = document.getElementById('pdfPreview');
+
+    // Accessibility: Trap focus within the modal
+    function trapFocus(element) {
+      const focusableElements = element.querySelectorAll('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])');
+      const firstFocusable = focusableElements[0];
+      const lastFocusable = focusableElements[focusableElements.length - 1];
+
+      function handleTab(e) {
+        if (e.key === 'Tab') {
+          if (e.shiftKey) { // Shift + Tab
+            if (document.activeElement === firstFocusable) {
+              e.preventDefault();
+              lastFocusable.focus();
+            }
+          } else { // Tab
+            if (document.activeElement === lastFocusable) {
+              e.preventDefault();
+              firstFocusable.focus();
+            }
+          }
+        } else if (e.key === 'Escape') {
+          // Optional: Close modal on Escape
+          // Uncomment the following lines if you want to allow closing the modal with Escape
+          // passwordModal.style.display = 'none';
+          // mainContent.style.display = 'flex';
+          // mainContent.querySelector('input, textarea, button').focus();
+        }
+      }
+
+      element.addEventListener('keydown', handleTab);
+    }
+
+    // Initialize focus trapping on modal
+    trapFocus(passwordModal);
+
+    // Set initial focus to the password input when modal opens
+    passwordInput.focus();
+
+    // Password Submission Handler
+    passwordSubmit.addEventListener('click', function() {
+      const enteredPassword = passwordInput.value;
       if (enteredPassword === correctPassword) {
-        document.getElementById('passwordModal').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'flex';
+        passwordModal.style.display = 'none';
+        mainContent.style.display = 'flex';
+        mainContent.querySelector('input, textarea, button').focus(); // Set focus to first interactive element
       } else {
-        document.getElementById('passwordError').style.display = 'block';
+        passwordError.style.display = 'block';
+        passwordInput.setAttribute('aria-invalid', 'true');
+        passwordInput.focus();
       }
     });
 
     // Allow pressing Enter to submit password
-    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    passwordInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
-        document.getElementById('passwordSubmit').click();
+        passwordSubmit.click();
+      }
+    });
+
+    // Function to show feedback messages
+    function showFeedback(message, type) {
+      feedbackMessage.textContent = message;
+      feedbackMessage.className = 'feedback-message';
+      if (type === 'success') {
+        feedbackMessage.classList.add('feedback-success');
+      } else if (type === 'error') {
+        feedbackMessage.classList.add('feedback-error');
+      }
+      feedbackMessage.style.display = 'block';
+      setTimeout(() => {
+        feedbackMessage.style.display = 'none';
+      }, 5000); // Hide after 5 seconds
+    }
+
+    // Function to show loading spinner
+    function showSpinner(spinner) {
+      spinner.style.display = 'inline-block';
+    }
+
+    // Function to hide loading spinner
+    function hideSpinner(spinner) {
+      spinner.style.display = 'none';
+    }
+
+    // Preview Button Click Handler
+    previewBtn.addEventListener('click', async function() {
+      showFeedback('Generating PDF preview...', 'success');
+      try {
+        // Show a temporary loading indicator (optional)
+        // You can create another spinner if desired
+        // Simulate PDF generation delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Implement your PDF generation logic here using pdf-lib
+        // For demonstration, we'll create a simple PDF with the booking message
+
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([600, 400]);
+        const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const text = document.getElementById('bookingMessage').value || 'No booking message provided.';
+        page.drawText(text, {
+          x: 50,
+          y: 350,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+        const pdfBytes = await pdfDoc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        pdfPreview.src = pdfUrl;
+
+        showFeedback('PDF preview generated successfully.', 'success');
+      } catch (error) {
+        console.error('Error generating PDF preview:', error);
+        showFeedback('Failed to generate PDF preview.', 'error');
+      }
+    });
+
+    // Download Button Click Handler
+    downloadBtn.addEventListener('click', async function() {
+      showSpinner(downloadSpinner);
+      showFeedback('Generating PDF for download...', 'success');
+      try {
+        // Implement your PDF generation logic here using pdf-lib
+        const { PDFDocument, StandardFonts, rgb } = PDFLib;
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([600, 400]);
+        const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const text = document.getElementById('bookingMessage').value || 'No booking message provided.';
+        page.drawText(text, {
+          x: 50,
+          y: 350,
+          size: 12,
+          font: helveticaFont,
+          color: rgb(0, 0, 0),
+        });
+        const pdfBytes = await pdfDoc.save();
+
+        // Trigger download
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'BookingForm.pdf';
+        link.click();
+
+        hideSpinner(downloadSpinner);
+        showFeedback('PDF downloaded successfully.', 'success');
+      } catch (error) {
+        console.error('Error downloading PDF:', error);
+        hideSpinner(downloadSpinner);
+        showFeedback('Failed to download PDF.', 'error');
       }
     });
   </script>
