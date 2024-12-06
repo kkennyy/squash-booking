@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Squash Court Booking PDF Generator</title>
   <style>
-    /* Your existing styles */
+    /* Base Styles */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      display: flex;
-      height: 100vh;
+      /* Removed display: flex and height: 100vh */
     }
     .left-panel, .right-panel {
       padding: 1em;
@@ -67,8 +66,14 @@
       margin-top: 1em;
     }
 
-    /* Hide the main content initially */
+    /* Main Content Flex Container */
     #mainContent {
+      display: flex;
+      height: 100vh; /* Ensures full viewport height */
+    }
+
+    /* Hide the main content initially */
+    #mainContent.hidden {
       display: none;
     }
 
@@ -90,6 +95,7 @@
       padding: 2em;
       border-radius: 5px;
       text-align: center;
+      width: 300px; /* Fixed width for the modal */
     }
     #passwordModal input {
       width: 80%;
@@ -119,7 +125,7 @@
   </div>
 
   <!-- Main Content -->
-  <div id="mainContent">
+  <div id="mainContent" class="hidden">
     <div class="left-panel">
       <h1>Generate Monthly Booking Form</h1>
       <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
@@ -143,37 +149,26 @@
   <script src="script.js"></script>
 
   <!-- Password Protection Script -->
-  <!-- Add this script instead of the previous password script -->
-<script>
-  // SHA-256 hash of "YourSecurePassword"
-  const correctPasswordHash = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // Example hash
+  <script>
+    // Define your password
+    const correctPassword = "YourSecurePassword"; // Change this to your desired password
 
-  async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return hashHex;
-  }
+    document.getElementById('passwordSubmit').addEventListener('click', function() {
+      const enteredPassword = document.getElementById('passwordInput').value;
+      if (enteredPassword === correctPassword) {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('mainContent').classList.remove('hidden');
+      } else {
+        document.getElementById('passwordError').style.display = 'block';
+      }
+    });
 
-  document.getElementById('passwordSubmit').addEventListener('click', async function() {
-    const enteredPassword = document.getElementById('passwordInput').value;
-    const enteredHash = await sha256(enteredPassword);
-    if (enteredHash === correctPasswordHash) {
-      document.getElementById('passwordModal').style.display = 'none';
-      document.getElementById('mainContent').style.display = 'flex';
-    } else {
-      document.getElementById('passwordError').style.display = 'block';
-    }
-  });
-
-  // Optional: Allow pressing Enter to submit password
-  document.getElementById('passwordInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      document.getElementById('passwordSubmit').click();
-    }
-  });
-</script>
-
+    // Optional: Allow pressing Enter to submit password
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('passwordSubmit').click();
+      }
+    });
+  </script>
 </body>
 </html>
