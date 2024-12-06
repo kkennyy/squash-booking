@@ -1,23 +1,64 @@
-// Import PDFLib (Ensure this is included in your HTML via a <script> tag)
-// <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+// script.js
 
-// Get DOM Elements
+// Define your password hash (SHA-256)
+const correctPasswordHash = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // Provided hash
+
+// Password Modal Elements
+const passwordModal = document.getElementById('passwordModal');
+const passwordInput = document.getElementById('passwordInput');
+const passwordSubmit = document.getElementById('passwordSubmit');
+const passwordError = document.getElementById('passwordError');
+
+// Main Content Elements
+const mainContent = document.getElementById('mainContent');
 const previewBtn = document.getElementById('previewBtn');
 const downloadBtn = document.getElementById('downloadBtn');
+const downloadSpinner = document.getElementById('downloadSpinner');
+const feedbackMessage = document.getElementById('feedbackMessage');
+const pdfPreview = document.getElementById('pdfPreview');
+
+// Get Form Inputs
 const eventDateInput = document.getElementById('eventDate');
 const bookingMessageInput = document.getElementById('bookingMessage');
-const pdfPreview = document.getElementById('pdfPreview');
 
 let currentPdfBytes = null; // Will store the most recently generated PDF bytes
 
-// Utility to format the submission date as "dd MMM yyyy"
-function getFormattedSubmissionDate() {
-  const today = new Date();
-  const day = today.getDate(); // No padding for single-digit days
-  const month = today.toLocaleString('default', { month: 'short' }); // e.g., "Dec"
-  const year = today.getFullYear();
-  return `${day} ${month} ${year}`; 
+// Accessibility: Trap focus within the modal
+function trapFocus(element) {
+  const focusableElements = element.querySelectorAll('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])');
+  const firstFocusable = focusableElements[0];
+  const lastFocusable = focusableElements[focusableElements.length - 1];
+
+  function handleTab(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) { // Shift + Tab
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
+        }
+      } else { // Tab
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
+      }
+    } else if (e.key === 'Escape') {
+      // Optional: Prevent closing modal with Escape
+      // To enable, uncomment the following lines
+      // passwordModal.style.display = 'none';
+      // mainContent.style.display = 'flex';
+      // mainContent.querySelector('input, textarea, button').focus();
+    }
+  }
+
+  element.addEventListener('keydown', handleTab);
 }
+
+// Initialize focus trapping on modal
+trapFocus(passwordModal);
+
+// Set initial focus to the password input when modal opens
+passwordInput.focus();
 
 // Function to hash the password using SHA-256
 async function hashPassword(password) {
@@ -29,7 +70,69 @@ async function hashPassword(password) {
   return hashHex;
 }
 
-// Password Handling (Assuming password protection is already implemented elsewhere)
+// Password Submission Handler
+passwordSubmit.addEventListener('click', async function() {
+  const enteredPassword = passwordInput.value;
+  if (!enteredPassword) {
+    passwordError.textContent = "Please enter a password.";
+    passwordError.style.display = 'block';
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordInput.focus();
+    return;
+  }
+  const enteredHash = await hashPassword(enteredPassword);
+  if (enteredHash === correctPasswordHash) {
+    passwordModal.style.display = 'none';
+    mainContent.style.display = 'flex';
+    mainContent.querySelector('input, textarea, button').focus(); // Set focus to first interactive element
+  } else {
+    passwordError.textContent = "Incorrect Password. Try again.";
+    passwordError.style.display = 'block';
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordInput.focus();
+  }
+});
+
+// Allow pressing Enter to submit password
+passwordInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    passwordSubmit.click();
+  }
+});
+
+// Function to show feedback messages
+function showFeedback(message, type) {
+  feedbackMessage.textContent = message;
+  feedbackMessage.className = 'feedback-message';
+  if (type === 'success') {
+    feedbackMessage.classList.add('feedback-success');
+  } else if (type === 'error') {
+    feedbackMessage.classList.add('feedback-error');
+  }
+  feedbackMessage.style.display = 'block';
+  setTimeout(() => {
+    feedbackMessage.style.display = 'none';
+  }, 5000); // Hide after 5 seconds
+}
+
+// Function to show loading spinner
+function showSpinner(spinner) {
+  spinner.style.display = 'inline-block';
+}
+
+// Function to hide loading spinner
+function hideSpinner(spinner) {
+  spinner.style.display = 'none';
+}
+
+// Utility to format the submission date as "dd MMM yyyy"
+function getFormattedSubmissionDate() {
+  const today = new Date();
+  const day = today.getDate(); // No padding for single-digit days
+  const month = today.toLocaleString('default', { month: 'short' }); // e.g., "Dec"
+  const year = today.getFullYear();
+  return `${day} ${month} ${year}`; 
+}
 
 // Function to generate PDF bytes
 async function generatePDFBytes() {
@@ -86,32 +189,6 @@ async function generatePDFBytes() {
     console.error("Error in generatePDFBytes:", error);
     return null;
   }
-}
-
-// Function to show feedback messages
-function showFeedback(message, type) {
-  const feedbackMessage = document.getElementById('feedbackMessage');
-  feedbackMessage.textContent = message;
-  feedbackMessage.className = 'feedback-message';
-  if (type === 'success') {
-    feedbackMessage.classList.add('feedback-success');
-  } else if (type === 'error') {
-    feedbackMessage.classList.add('feedback-error');
-  }
-  feedbackMessage.style.display = 'block';
-  setTimeout(() => {
-    feedbackMessage.style.display = 'none';
-  }, 5000); // Hide after 5 seconds
-}
-
-// Function to show loading spinner
-function showSpinner(spinner) {
-  spinner.style.display = 'inline-block';
-}
-
-// Function to hide loading spinner
-function hideSpinner(spinner) {
-  spinner.style.display = 'none';
 }
 
 // Preview Button Click Handler
