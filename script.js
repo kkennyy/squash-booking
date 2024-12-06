@@ -1,3 +1,6 @@
+// Import PDFLib (Ensure this is included in your HTML via a <script> tag)
+// <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+
 // Get DOM Elements
 const previewBtn = document.getElementById('previewBtn');
 const downloadBtn = document.getElementById('downloadBtn');
@@ -26,6 +29,9 @@ async function hashPassword(password) {
   return hashHex;
 }
 
+// Password Handling (Assuming password protection is already implemented elsewhere)
+
+// Function to generate PDF bytes
 async function generatePDFBytes() {
   try {
     // Get the input values
@@ -98,11 +104,21 @@ function showFeedback(message, type) {
   }, 5000); // Hide after 5 seconds
 }
 
+// Function to show loading spinner
+function showSpinner(spinner) {
+  spinner.style.display = 'inline-block';
+}
+
+// Function to hide loading spinner
+function hideSpinner(spinner) {
+  spinner.style.display = 'none';
+}
+
 // Preview Button Click Handler
 previewBtn.addEventListener('click', async () => {
   // Hide previous feedback messages
   showFeedback("Generating PDF preview...", "success");
-  
+
   const pdfBytes = await generatePDFBytes();
   if (!pdfBytes) return;
   currentPdfBytes = pdfBytes;
