@@ -9,7 +9,7 @@ let currentPdfBytes = null; // Will store the most recently generated PDF bytes
 // Utility to format the submission date as "dd MMM yyyy"
 function getFormattedSubmissionDate() {
   const today = new Date();
-  const day = String(today.getDate()).padStart(2, '0');
+  const day = String(today.getDate());
   const month = today.toLocaleString('default', { month: 'short' }); // e.g. "Dec"
   const year = today.getFullYear();
   return `${day} ${month} ${year}`; 
