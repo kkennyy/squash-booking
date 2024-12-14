@@ -15,6 +15,11 @@
       background-color: #f5f5f5;
     }
 
+    /* Apply Arial to all form elements explicitly */
+    body, input[type="text"], textarea, button, label {
+      font-family: Arial, sans-serif;
+    }
+
     main {
       display: flex;
       width: 90%;
@@ -67,8 +72,10 @@
       border-radius: 4px;
     }
 
+    /* Ensure textarea has Arial */
     textarea#bookingMessage {
       width: 100%;
+      font-family: Arial, sans-serif; 
       font-size: 12px;
       line-height: 1.4;
       padding: 0.5em;
@@ -116,7 +123,7 @@
       border-radius: 4px;
     }
 
-    /* Modal */
+    /* Password Modal */
     #passwordModal {
       position: fixed;
       top: 0;
@@ -202,6 +209,10 @@
       color: red;
     }
 
+    .hidden {
+      display: none;
+    }
+
     /* Onboarding Overlay */
     #onboardingOverlay {
       position: fixed;
@@ -210,7 +221,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0,0,0,0.75);
-      display: none; /* start hidden, show programmatically */
+      display: none;
       justify-content: center;
       align-items: center;
       z-index: 2000;
@@ -271,6 +282,10 @@
     </div>
   </div>
 
+  <!-- 
+    Main content is hidden by default so user only sees password modal initially. 
+    Once correct password is entered, we remove the hidden class.
+  -->
   <main id="mainContent" class="hidden" aria-label="Main Content">
     <div id="onboardingOverlay" aria-live="polite">
       <div id="onboardingOverlayContent">
