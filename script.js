@@ -147,13 +147,21 @@ async function generatePDFBytes() {
       return null;
     }
 
-    // Fetch the template PDF
-    const response = await fetch('template_3.pdf');
+    // Fetch the template PDF with CORS settings
+    const response = await fetch('template_3.pdf', {
+      mode: 'cors',
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/pdf'
+      }
+    });
+
     if (!response.ok) {
       showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted.", "error");
       console.error("Error fetching template_3.pdf:", response.statusText);
       return null;
     }
+    
     const templateBytes = await response.arrayBuffer();
 
     const { PDFDocument } = PDFLib;
