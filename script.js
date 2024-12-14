@@ -143,4 +143,194 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * For
+   * Format the current date as "dd MMM yyyy"
+   * @returns {string} - The formatted date string
+   */
+  function getFormattedSubmissionDate() {
+    const today = new Date();
+    const day = today.getDate();
+    const month = today.toLocaleString('default', { month: 'short' }); 
+    const year = today.getFullYear();
+    return `${day} ${month} ${year}`; 
+  }
+
+  /**
+   * Generate PDF bytes by populating the template with user inputs
+   * @returns {Promise<Uint8Array|null>}
+   */
+  async function generatePDFBytes() {
+    try {
+      const eventDate = eventDateInput.value.trim();
+      const bookingMessage = bookingMessageInput.value.trim();
+      const submissionDate = getFormattedSubmissionDate();
+
+      if (!eventDate || !bookingMessage) {
+        showFeedback("Please fill in both Event Date and Booking Request Message.", "error");
+        return null;
+      }
+
+      const response = await fetch(TEMPLATE_URL, {
+        method: 'GET',
+        mode: 'same-origin',
+        cache: 'no-cache',
+        headers: {
+          'Accept': 'application/pdf'
+        }
+      });
+
+      if (!response.ok) {
+        showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted and accessible.", "error");
+        console.error("Error fetching template_3.pdf:", response.status, response.statusText);
+        return null;
+      }
+
+      const templateBytes = await response.arrayBuffer();
+      const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
+      const form = pdfDoc.getForm();
+
+      // Get fields by their exact names
+      const eventDateField = form.getTextField('EventDateField');
+      const submissionDateField = form.getTextField('SubmissionDateField');
+      const annexureField = form.getTextField('AnnexureField');
+
+      if (!eventDateField || !submissionDateField || !annexureField) {
+        showFeedback("One or more form fields are missing or not text fields in the template PDF.", "error");
+        console.error("Ensure 'EventDateField', 'SubmissionDateField', and 'AnnexureField' are text fields.");
+        return null;
+      }
+
+      // Embed the standard Courier font
+      const { StandardFonts } = PDFLib;
+      let courierFont;
+      try {
+        courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
+      } catch (fontError) {
+        showFeedback("Failed to embed the standard Courier font.", "error");
+        console.error("Error embedding Courier font:", fontError);
+        return null;
+      }
+
+      // Populate fields
+      eventDateField.setText(eventDate);
+      eventDateField.setFont(courierFont);
+      eventDateField.setFontSize(12);
+
+      submissionDateField.setText(submissionDate);
+      submissionDateField.setFont(courierFont);
+      submissionDateField.setFontSize(12);
+
+      annexureField.setText(bookingMessage);
+      annexureField.setFont(courierFont);
+      annexureField.setFontSize(12);
+
+      // Flatten form
+      form.flatten();
+
+      const pdfBytes = await pdfDoc.save();
+      return pdfBytes;
+
+    } catch (error) {
+      showFeedback("An unexpected error occurred during PDF generation.", "error");
+      console.error("Error in generatePDFBytes:", error);
+      return null;
+    }
+  }
+
+  // ===========================
+  //        EVENT LISTENERS
+  // ===========================
+
+  passwordSubmit.addEventListener('click', async function() {
+    const enteredPassword = passwordInput.value;
+    if (!enteredPassword) {
+      passwordError.textContent = "Please enter a password.";
+      passwordError.style.display = 'block';
+      passwordInput.setAttribute('aria-invalid', 'true');
+      passwordInput.focus();
+      return;
+    }
+
+    const enteredHash = await hashPassword(enteredPassword);
+
+    if (enteredHash === CORRECT_PASSWORD_HASH) {
+      passwordModal.style.display = 'none';
+      mainContent.style.display = 'flex';
+      mainContent.querySelector('input, textarea, button').focus();
+    } else {
+      passwordError.textContent = "Incorrect Password. Try again.";
+      passwordError.style.display = 'block';
+      passwordInput.setAttribute('aria-invalid', 'true');
+      passwordInput.value = '';
+      passwordInput.focus();
+    }
+  });
+
+  passwordInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      passwordSubmit.click();
+    }
+  });
+
+  previewBtn.addEventListener('click', async () => {
+    showFeedback("Generating PDF preview...", "info");
+    previewBtn.disabled = true;
+    showSpinner(previewSpinner);
+
+    const pdfBytes = await generatePDFBytes();
+
+    previewBtn.disabled = false;
+    hideSpinner(previewSpinner);
+
+    if (!pdfBytes) return;
+
+    currentPdfBytes = pdfBytes;
+
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    pdfPreview.src = url;
+
+    downloadBtn.style.display = 'inline-block';
+
+    showFeedback("PDF preview generated successfully.", "success");
+  });
+
+  downloadBtn.addEventListener('click', async () => {
+    if (!currentPdfBytes) {
+      showFeedback("No PDF available to download. Please generate a preview first.", "error");
+      return;
+    }
+
+    showFeedback("Generating PDF for download...", "info");
+    downloadBtn.disabled = true;
+    showSpinner(downloadSpinner);
+
+    const pdfBytes = await generatePDFBytes();
+
+    downloadBtn.disabled = false;
+    hideSpinner(downloadSpinner);
+
+    if (!pdfBytes) return;
+
+    const eventDate = eventDateInput.value.trim();
+    const formattedEventDate = eventDate.replace(/\s+/g, '');
+    const filename = `${PDF_FILENAME_PREFIX}${formattedEventDate}.pdf`;
+
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showFeedback("PDF downloaded successfully.", "success");
+  });
+
+  // Initialize modal focus trapping
+  function initializeModal() {
+    trapFocus(passwordModal);
+    passwordInput.focus();
+  }
+
+  initializeModal();
+});
