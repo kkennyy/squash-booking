@@ -2,51 +2,37 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   // ===========================
-  //        CONSTANTS
+  //       CONFIG CONSTANTS
   // ===========================
-  const TEMPLATE_URL = './template_3.pdf'; // Template in same directory as index.html
-  const CORRECT_PASSWORD_HASH = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // SHA-256 hash of correct password
+  const TEMPLATE_URL = './template_3.pdf';
+  const CORRECT_PASSWORD_HASH = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6";
   const PDF_FILENAME_PREFIX = 'NP_CCAB_Booking_';
-  const FEEDBACK_DISPLAY_TIME = 5000; // 5 seconds
+  const FEEDBACK_DISPLAY_TIME = 5000;
 
   // ===========================
   //      ELEMENT SELECTORS
   // ===========================
-  // Password Modal Elements
   const passwordModal = document.getElementById('passwordModal');
   const passwordInput = document.getElementById('passwordInput');
   const passwordSubmit = document.getElementById('passwordSubmit');
   const passwordError = document.getElementById('passwordError');
 
-  // Main Content Elements
   const mainContent = document.getElementById('mainContent');
   const previewBtn = document.getElementById('previewBtn');
   const downloadBtn = document.getElementById('downloadBtn');
   const downloadSpinner = document.getElementById('downloadSpinner');
-
-  // Create a separate spinner for preview
-  const previewSpinner = document.createElement('div');
-  previewSpinner.classList.add('spinner');
-  previewSpinner.id = 'previewSpinner';
-  previewSpinner.style.display = 'none';
-  previewBtn.parentElement.appendChild(previewSpinner);
-
+  const previewSpinner = document.getElementById('previewSpinner');
   const feedbackMessage = document.getElementById('feedbackMessage');
   const pdfPreview = document.getElementById('pdfPreview');
-
-  // Form Inputs
   const eventDateInput = document.getElementById('eventDate');
   const bookingMessageInput = document.getElementById('bookingMessage');
 
   let currentPdfBytes = null;
 
   // ===========================
-  //        FUNCTIONS
+  //         FUNCTIONS
   // ===========================
 
-  /**
-   * Trap focus within the modal for accessibility
-   */
   function trapFocus(element) {
     const focusableSelectors = 'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableElements = element.querySelectorAll(focusableSelectors);
@@ -67,17 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else if (e.key === 'Escape') {
-        // Prevent closing with Escape for security
+        // Prevent closing with Escape for security reasons
         e.preventDefault();
       }
     }
-
     element.addEventListener('keydown', handleTab);
   }
 
-  /**
-   * Hash a given password using SHA-256
-   */
   async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -87,9 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return hashHex;
   }
 
-  /**
-   * Display feedback messages
-   */
   function showFeedback(message, type) {
     feedbackMessage.textContent = message;
     feedbackMessage.className = 'feedback-message';
@@ -110,45 +89,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     feedbackMessage.style.display = 'block';
 
-    // Clear any existing timeout
     if (feedbackMessage.timeoutId) {
       clearTimeout(feedbackMessage.timeoutId);
     }
 
-    // Hide after FEEDBACK_DISPLAY_TIME
     feedbackMessage.timeoutId = setTimeout(() => {
       feedbackMessage.style.display = 'none';
     }, FEEDBACK_DISPLAY_TIME);
   }
 
-  /**
-   * Show a loading spinner
-   */
   function showSpinner(spinner) {
     spinner.style.display = 'inline-block';
   }
 
-  /**
-   * Hide a loading spinner
-   */
   function hideSpinner(spinner) {
     spinner.style.display = 'none';
   }
 
-  /**
-   * Format the current date as "dd MMM yyyy"
-   */
   function getFormattedSubmissionDate() {
     const today = new Date();
     const day = today.getDate();
-    const month = today.toLocaleString('default', { month: 'short' }); 
+    const month = today.toLocaleString('default', { month: 'short' });
     const year = today.getFullYear();
-    return `${day} ${month} ${year}`; 
+    return `${day} ${month} ${year}`;
   }
 
-  /**
-   * Generate PDF bytes by populating the template with user inputs
-   */
   async function generatePDFBytes() {
     try {
       const eventDate = eventDateInput.value.trim();
@@ -160,14 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       }
 
-      const response = await fetch(TEMPLATE_URL, {
-        method: 'GET',
-        mode: 'same-origin',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/pdf'
-        }
-      });
+      const response = await fetch(TEMPLATE_URL); // simplified fetch
 
       if (!response.ok) {
         showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted and accessible.", "error");
@@ -179,25 +137,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const pdfDoc = await PDFLib.PDFDocument.load(templateBytes);
       const form = pdfDoc.getForm();
 
-      // Get fields by their exact names
       const eventDateField = form.getTextField('EventDateField');
       const submissionDateField = form.getTextField('SubmissionDateField');
       const annexureField = form.getTextField('AnnexureField');
 
       if (!eventDateField || !submissionDateField || !annexureField) {
-        showFeedback("One or more form fields are missing or not text fields in the template PDF.", "error");
-        console.error("Ensure 'EventDateField', 'SubmissionDateField', and 'AnnexureField' are text fields.");
+        showFeedback("One or more form fields are missing in the template PDF.", "error");
+        console.error("Check the PDF form fields: EventDateField, SubmissionDateField, AnnexureField.");
         return null;
       }
 
-      // Just set text without changing font
       eventDateField.setText(eventDate);
       submissionDateField.setText(submissionDate);
       annexureField.setText(bookingMessage);
 
-      // Flatten form
       form.flatten();
-
       const pdfBytes = await pdfDoc.save();
       return pdfBytes;
 
@@ -211,8 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===========================
   //        EVENT LISTENERS
   // ===========================
-
-  passwordSubmit.addEventListener('click', async function() {
+  passwordSubmit.addEventListener('click', async () => {
     const enteredPassword = passwordInput.value;
     if (!enteredPassword) {
       passwordError.textContent = "Please enter a password.";
@@ -226,8 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (enteredHash === CORRECT_PASSWORD_HASH) {
       passwordModal.style.display = 'none';
-      mainContent.style.display = 'flex';
-      mainContent.querySelector('input, textarea, button').focus();
+      mainContent.classList.remove('hidden');
+      const firstInteractiveElement = mainContent.querySelector('input, textarea, button');
+      if (firstInteractiveElement) firstInteractiveElement.focus();
     } else {
       passwordError.textContent = "Incorrect Password. Try again.";
       passwordError.style.display = 'block';
@@ -237,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  passwordInput.addEventListener('keypress', function(e) {
+  passwordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       passwordSubmit.click();
     }
@@ -262,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pdfPreview.src = url;
 
     downloadBtn.style.display = 'inline-block';
-
     showFeedback("PDF preview generated successfully.", "success");
   });
 
@@ -298,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showFeedback("PDF downloaded successfully.", "success");
   });
 
-  // Initialize modal focus trapping
   function initializeModal() {
     trapFocus(passwordModal);
     passwordInput.focus();
