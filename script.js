@@ -164,7 +164,7 @@ async function generatePDFBytes() {
     
     const templateBytes = await response.arrayBuffer();
 
-    const { PDFDocument } = PDFLib;
+    const { PDFDocument, StandardFonts } = PDFLib;
     const pdfDoc = await PDFDocument.load(templateBytes);
     const form = pdfDoc.getForm();
 
@@ -180,10 +180,42 @@ async function generatePDFBytes() {
       return null;
     }
 
-    // Fill the fields
-    eventDateField.setText(eventDate);
-    submissionDateField.setText(submissionDate);
-    annexureField.setText(bookingMessage);
+    // Try both font approaches
+    try {
+      // Approach 1: Using Standard Fonts
+      const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
+      
+      // Fill fields and set fonts
+      eventDateField.setText(eventDate);
+      eventDateField.setFont(courierFont);
+      eventDateField.setFontSize(12);
+
+      submissionDateField.setText(submissionDate);
+      submissionDateField.setFont(courierFont);
+      submissionDateField.setFontSize(12);
+
+      annexureField.setText(bookingMessage);
+      annexureField.setFont(courierFont);
+      annexureField.setFontSize(12);
+    } catch (fontError) {
+      console.error("Error setting standard font, trying alternate approach:", fontError);
+      
+      // Approach 2: Using custom Courier New font
+      const courierNewFont = await pdfDoc.embedFont('Courier New');
+      
+      // Fill fields and set fonts
+      eventDateField.setText(eventDate);
+      eventDateField.setFont(courierNewFont);
+      eventDateField.setFontSize(12);
+
+      submissionDateField.setText(submissionDate);
+      submissionDateField.setFont(courierNewFont);
+      submissionDateField.setFontSize(12);
+
+      annexureField.setText(bookingMessage);
+      annexureField.setFont(courierNewFont);
+      annexureField.setFontSize(12);
+    }
 
     // Flatten the form to make the fields non-editable
     form.flatten();
