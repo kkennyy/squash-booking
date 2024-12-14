@@ -55,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       } else if (e.key === 'Escape') {
-        // Prevent closing with Escape for security reasons
         e.preventDefault();
       }
     }
@@ -180,7 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function showOnboardingIfNeeded() {
     const onboardingDismissed = localStorage.getItem('onboardingDismissed');
     if (!onboardingDismissed) {
-      // Ensure it's visible
       onboardingOverlay.classList.remove('hidden');
       onboardingOverlay.style.display = 'flex';
     }
@@ -202,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const enteredHash = await hashPassword(enteredPassword);
 
     if (enteredHash === CORRECT_PASSWORD_HASH) {
-      // Hide the password modal completely
       passwordModal.style.display = 'none';
 
       mainContent.classList.remove('hidden');
@@ -285,8 +282,8 @@ document.addEventListener('DOMContentLoaded', () => {
   onboardingDismiss.addEventListener('click', () => {
     console.log("OnboardingDismiss clicked");
     localStorage.setItem('onboardingDismissed', 'true');
-    // Directly hide using style:
-    onboardingOverlay.style.display = 'none';
+    // Remove the overlay from the DOM entirely
+    onboardingOverlay.remove();
 
     previewBtn.classList.add('highlight');
     setTimeout(() => {
