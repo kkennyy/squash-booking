@@ -180,7 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function showOnboardingIfNeeded() {
     const onboardingDismissed = localStorage.getItem('onboardingDismissed');
     if (!onboardingDismissed) {
+      // Ensure it's visible
       onboardingOverlay.classList.remove('hidden');
+      onboardingOverlay.style.display = 'flex';
     }
   }
 
@@ -282,8 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   onboardingDismiss.addEventListener('click', () => {
     console.log("OnboardingDismiss clicked");
-    onboardingOverlay.classList.add('hidden');
     localStorage.setItem('onboardingDismissed', 'true');
+    // Directly hide using style:
+    onboardingOverlay.style.display = 'none';
+
     previewBtn.classList.add('highlight');
     setTimeout(() => {
       previewBtn.classList.remove('highlight');
