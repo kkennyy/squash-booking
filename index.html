@@ -213,7 +213,7 @@
 
     /* Onboarding Overlay */
     #onboardingOverlay {
-      position: absolute;
+      position: fixed; /* changed from absolute to fixed */
       top: 0;
       left: 0;
       width: 100%;
@@ -222,7 +222,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 2000; /* Increased z-index */
+      z-index: 2000; /* Ensures it's above the passwordModal */
       color: #fff;
       font-size: 14px;
       padding: 2em;
@@ -288,7 +288,6 @@
         <p>2. Click "Preview" (or press Ctrl+P) to generate a PDF preview.</p>
         <p>3. Once satisfied, download the PDF.</p>
         <p>We’ve restored your inputs from previous sessions if available.</p>
-        <!-- Added type="button" to ensure it doesn't interfere with forms -->
         <button id="onboardingDismiss" type="button">Got it!</button>
       </div>
     </div>
