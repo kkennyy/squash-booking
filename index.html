@@ -9,22 +9,22 @@
     body {
       font-family: Arial, sans-serif;
       margin: 0;
-      height: 100vh; /* Ensure body takes full viewport height */
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #f5f5f5; /* Light background */
+      background-color: #f5f5f5;
     }
 
     /* Main Content Container */
     #mainContent {
       display: flex;
       width: 90%;
-      height: 90vh; /* Occupy most of the viewport height */
+      height: 90vh;
       background-color: #fff;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       border-radius: 8px;
-      overflow: hidden; /* Prevent overflow */
+      overflow: hidden;
     }
 
     /* Left and Right Panels */
@@ -36,7 +36,7 @@
       width: 50%;
       border-right: 1px solid #ccc;
       display: flex;
-      flex-direction: column; /* Arrange children vertically */
+      flex-direction: column;
     }
     .right-panel {
       width: 50%;
@@ -59,7 +59,7 @@
       font-family: Helvetica, sans-serif;
     }
 
-    input[type="text"], textarea {
+    input[type="text"] {
       width: 100%;
       font-family: Helvetica, sans-serif;
       font-size: 12px;
@@ -70,17 +70,26 @@
       border-radius: 4px;
     }
 
-    textarea {
-      flex-grow: 1; /* Allow textarea to expand */
-      resize: vertical; /* Allow vertical resizing */
-      min-height: 150px; /* Minimum height */
+    textarea#bookingMessage {
+      width: 100%;
+      font-family: Consolas, Monaco, "Courier New", Courier, monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      padding: 0.5em;
+      box-sizing: border-box;
+      margin-top: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      flex-grow: 1;
+      resize: vertical;
+      min-height: 150px;
     }
 
     /* Button Container */
     .button-container {
       margin-top: 1em;
       display: flex;
-      gap: 1em; /* Space between buttons */
+      gap: 1em;
     }
 
     button {
@@ -97,7 +106,7 @@
 
     button:hover, button:focus {
       background-color: #0056b3;
-      outline: none; /* Remove default outline */
+      outline: none;
     }
 
     /* Focus Indicators */
@@ -107,12 +116,13 @@
     }
 
     /* Preview Iframe */
-    iframe {
+    iframe#pdfPreview {
       border: 1px solid #ccc;
       width: 100%;
       flex: 1;
       margin-top: 1em;
       border-radius: 4px;
+      font-family: Consolas, Monaco, "Courier New", Courier, monospace;
     }
 
     /* Password Modal Styles */
@@ -161,7 +171,7 @@
 
     #passwordModal button:hover, #passwordModal button:focus {
       background-color: #218838;
-      outline: none; /* Remove default outline */
+      outline: none;
     }
 
     #passwordError {
@@ -173,13 +183,13 @@
 
     /* Loading Spinner */
     .spinner {
-      border: 4px solid #f3f3f3; /* Light grey */
-      border-top: 4px solid #007BFF; /* Blue */
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007BFF;
       border-radius: 50%;
       width: 24px;
       height: 24px;
       animation: spin 2s linear infinite;
-      display: none; /* Hidden by default */
+      display: none;
       margin-left: 0.5em;
     }
 
