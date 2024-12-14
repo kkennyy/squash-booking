@@ -187,7 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (enteredHash === CORRECT_PASSWORD_HASH) {
       passwordModal.style.display = 'none';
-      mainContent.classList.remove('hidden');
+      mainContent.classList.remove('hidden'); // show main content only now
+
       restoreInputs();
       showOnboardingIfNeeded();
 
@@ -267,9 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
   onboardingDismiss.addEventListener('click', () => {
     console.log("OnboardingDismiss clicked");
     localStorage.setItem('onboardingDismissed', 'true');
-    // Completely remove the overlay node
-    onboardingOverlay.parentNode.removeChild(onboardingOverlay);
-    console.log("Overlay removed from DOM");
+    onboardingOverlay.style.display = 'none';
 
     previewBtn.classList.add('highlight');
     setTimeout(() => {
