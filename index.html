@@ -16,7 +16,6 @@
       background-color: #f5f5f5;
     }
 
-    /* Ensure uniform font across all form elements */
     body, input[type="text"], textarea, button, label {
       font-family: Arial, sans-serif;
     }
@@ -29,6 +28,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       border-radius: 8px;
       overflow: hidden;
+      position: relative;
     }
 
     section {
@@ -211,6 +211,49 @@
       display: none;
     }
 
+    /* Onboarding Overlay */
+    #onboardingOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      color: #fff;
+      font-size: 14px;
+      padding: 2em;
+      box-sizing: border-box;
+    }
+
+    #onboardingOverlayContent {
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #onboardingOverlayContent button {
+      margin-top: 1em;
+      background-color: #28a745;
+      font-size: 14px;
+    }
+
+    #onboardingOverlay h2 {
+      margin-bottom: 0.5em;
+    }
+
+    /* Highlighting the preview button once onboarded */
+    .highlight {
+      animation: highlightGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes highlightGlow {
+      0% { box-shadow: 0 0 0px #007BFF; }
+      100% { box-shadow: 0 0 10px #007BFF; }
+    }
+
     @media (max-width: 768px) {
       main {
         flex-direction: column;
@@ -224,7 +267,6 @@
       }
     }
   </style>
-
 </head>
 <body>
 
@@ -239,30 +281,41 @@
     </div>
   </div>
 
-  <main id="mainContent" class="hidden">
-    <section class="left-panel">
+  <main id="mainContent" class="hidden" aria-label="Main Content">
+    <div id="onboardingOverlay" class="hidden" aria-live="polite">
+      <div id="onboardingOverlayContent">
+        <h2>Welcome!</h2>
+        <p>1. Enter your Event Date and Booking Request Message.</p>
+        <p>2. Click "Preview" (or press Ctrl+P) to generate a PDF preview.</p>
+        <p>3. Once satisfied, download the PDF.</p>
+        <p>We’ve restored your inputs from previous sessions if available.</p>
+        <button id="onboardingDismiss">Got it!</button>
+      </div>
+    </div>
+
+    <section class="left-panel" aria-label="Form Section">
       <h1>Generate Monthly Booking Form</h1>
       <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
-      <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
+      <input type="text" id="eventDate" placeholder="e.g. Feb 2025" aria-required="true" />
 
       <label for="bookingMessage">Booking Request Message:</label>
-      <textarea id="bookingMessage" placeholder="Enter your booking message here..." aria-label="Booking Request Message"></textarea>
+      <textarea id="bookingMessage" placeholder="Enter your booking message here..." aria-label="Booking Request Message" aria-required="true"></textarea>
 
       <div class="button-container">
-        <button id="previewBtn">Preview</button>
+        <button id="previewBtn" aria-label="Generate PDF Preview">Preview</button>
         <div style="display: flex; align-items: center;">
-          <button id="downloadBtn" style="display:none;">Download PDF</button>
-          <div class="spinner" id="downloadSpinner"></div>
-          <div class="spinner" id="previewSpinner"></div>
+          <button id="downloadBtn" style="display:none;" aria-label="Download PDF">Download PDF</button>
+          <div class="spinner" id="downloadSpinner" role="status" aria-live="assertive"></div>
+          <div class="spinner" id="previewSpinner" role="status" aria-live="assertive"></div>
         </div>
       </div>
 
-      <div class="feedback-message" id="feedbackMessage"></div>
+      <div class="feedback-message" id="feedbackMessage" aria-live="polite"></div>
     </section>
 
-    <section class="right-panel">
+    <section class="right-panel" aria-label="PDF Preview Section">
       <h2>Preview</h2>
-      <iframe id="pdfPreview" title="PDF Preview"></iframe>
+      <iframe id="pdfPreview" title="PDF Preview" aria-label="PDF Preview"></iframe>
     </section>
   </main>
 
