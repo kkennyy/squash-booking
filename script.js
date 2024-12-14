@@ -200,9 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const enteredHash = await hashPassword(enteredPassword);
 
     if (enteredHash === CORRECT_PASSWORD_HASH) {
+      // Hide the password modal completely
       passwordModal.style.display = 'none';
-      mainContent.classList.remove('hidden');
 
+      mainContent.classList.remove('hidden');
       restoreInputs();
       showOnboardingIfNeeded();
 
@@ -280,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   onboardingDismiss.addEventListener('click', () => {
-    console.log("OnboardingDismiss clicked"); // Debug log
+    console.log("OnboardingDismiss clicked");
     onboardingOverlay.classList.add('hidden');
     localStorage.setItem('onboardingDismissed', 'true');
     previewBtn.classList.add('highlight');
