@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Type" content="text/html">
   <title>Squash Court Booking PDF Generator</title>
   <style>
     /* Base Styles */
@@ -17,8 +16,7 @@
       background-color: #f5f5f5;
     }
 
-    /* Main Content Container */
-    #mainContent {
+    main {
       display: flex;
       width: 90%;
       height: 90vh;
@@ -28,17 +26,18 @@
       overflow: hidden;
     }
 
-    /* Left and Right Panels */
-    .left-panel, .right-panel {
+    section {
       padding: 1em;
       box-sizing: border-box;
     }
+
     .left-panel {
       width: 50%;
       border-right: 1px solid #ccc;
       display: flex;
       flex-direction: column;
     }
+
     .right-panel {
       width: 50%;
       display: flex;
@@ -47,8 +46,7 @@
       justify-content: flex-start;
     }
 
-    /* Form Elements in Left Panel */
-    .left-panel h1 {
+    h1 {
       margin-top: 0;
       font-size: 1.5em;
       text-align: center;
@@ -57,12 +55,10 @@
     label {
       margin-top: 1em;
       font-size: 12px;
-      font-family: Arial, sans-serif;
     }
 
     input[type="text"] {
       width: 100%;
-      font-family: Arial, sans-serif;
       font-size: 12px;
       padding: 0.5em;
       box-sizing: border-box;
@@ -73,8 +69,7 @@
 
     textarea#bookingMessage {
       width: 100%;
-      font-family: Arial, sans-serif;
-      font-size: 12px; /* changed from 14px to 12px for consistency */
+      font-size: 12px;
       line-height: 1.4;
       padding: 0.5em;
       box-sizing: border-box;
@@ -86,7 +81,6 @@
       min-height: 150px;
     }
 
-    /* Button Container */
     .button-container {
       margin-top: 1em;
       display: flex;
@@ -95,7 +89,6 @@
 
     button {
       padding: 0.5em 1em;
-      font-family: Arial, sans-serif;
       font-size: 12px;
       cursor: pointer;
       border: none;
@@ -110,23 +103,20 @@
       outline: none;
     }
 
-    /* Focus Indicators */
     button:focus, input:focus, textarea:focus {
       outline: 2px solid #0056b3;
       outline-offset: 2px;
     }
 
-    /* Preview Iframe */
     iframe#pdfPreview {
       border: 1px solid #ccc;
       width: 100%;
       flex: 1;
       margin-top: 1em;
       border-radius: 4px;
-      font-family: Arial, sans-serif;
     }
 
-    /* Password Modal Styles */
+    /* Modal */
     #passwordModal {
       position: fixed;
       top: 0;
@@ -147,7 +137,6 @@
       text-align: center;
       width: 300px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      font-family: Arial, sans-serif;
     }
 
     #passwordModal input {
@@ -169,7 +158,6 @@
       background-color: #28a745;
       color: #fff;
       transition: background-color 0.3s ease;
-      font-family: Arial, sans-serif;
     }
 
     #passwordModal button:hover, #passwordModal button:focus {
@@ -182,10 +170,8 @@
       display: none;
       margin-top: 0.5em;
       font-size: 14px;
-      font-family: Arial, sans-serif;
     }
 
-    /* Loading Spinner */
     .spinner {
       border: 4px solid #f3f3f3;
       border-top: 4px solid #007BFF;
@@ -202,12 +188,10 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Feedback Messages */
     .feedback-message {
       margin-top: 1em;
       font-size: 14px;
       display: none;
-      font-family: Arial, sans-serif;
     }
 
     .feedback-success {
@@ -218,9 +202,12 @@
       color: red;
     }
 
-    /* Responsive Design */
+    .hidden {
+      display: none;
+    }
+
     @media (max-width: 768px) {
-      #mainContent {
+      main {
         flex-direction: column;
       }
       .left-panel, .right-panel {
@@ -238,7 +225,7 @@
   <!-- Password Modal -->
   <div id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle" aria-modal="true">
     <div>
-      <h2 id="passwordModalTitle" style="font-family: Arial, sans-serif;">Enter Password</h2>
+      <h2 id="passwordModalTitle">Enter Password</h2>
       <input type="password" id="passwordInput" placeholder="Password" aria-label="Password" />
       <br />
       <button id="passwordSubmit">Submit</button>
@@ -246,10 +233,9 @@
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div id="mainContent" style="display: none;">
-    <div class="left-panel">
-      <h1 style="font-family: Arial, sans-serif;">Generate Monthly Booking Form</h1>
+  <main id="mainContent" class="hidden">
+    <section class="left-panel">
+      <h1>Generate Monthly Booking Form</h1>
       <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
       <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
 
@@ -266,13 +252,13 @@
       </div>
 
       <div class="feedback-message" id="feedbackMessage"></div>
-    </div>
+    </section>
 
-    <div class="right-panel">
-      <h2 style="font-family: Arial, sans-serif;">Preview</h2>
+    <section class="right-panel">
+      <h2>Preview</h2>
       <iframe id="pdfPreview" title="PDF Preview"></iframe>
-    </div>
-  </div>
+    </section>
+  </main>
 
   <!-- Load pdf-lib from CDN -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
