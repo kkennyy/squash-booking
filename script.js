@@ -1,17 +1,11 @@
 // script.js
 
 document.addEventListener('DOMContentLoaded', () => {
-  // ===========================
-  //       CONFIG CONSTANTS
-  // ===========================
   const TEMPLATE_URL = './template_3.pdf';
   const CORRECT_PASSWORD_HASH = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6";
   const PDF_FILENAME_PREFIX = 'NP_CCAB_Booking_';
   const FEEDBACK_DISPLAY_TIME = 5000;
 
-  // ===========================
-  //      ELEMENT SELECTORS
-  // ===========================
   const passwordModal = document.getElementById('passwordModal');
   const passwordInput = document.getElementById('passwordInput');
   const passwordSubmit = document.getElementById('passwordSubmit');
@@ -32,9 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentPdfBytes = null;
 
-  // ===========================
-  //         FUNCTIONS
-  // ===========================
   function trapFocus(element) {
     const focusableSelectors = 'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableElements = element.querySelectorAll(focusableSelectors);
@@ -83,8 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'info':
         feedbackMessage.classList.add('feedback-info');
-        break;
-      default:
         break;
     }
 
@@ -179,14 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function showOnboardingIfNeeded() {
     const onboardingDismissed = localStorage.getItem('onboardingDismissed');
     if (!onboardingDismissed) {
-      onboardingOverlay.classList.remove('hidden');
+      console.log("Showing onboarding overlay");
       onboardingOverlay.style.display = 'flex';
     }
   }
 
-  // ===========================
-  //        EVENT LISTENERS
-  // ===========================
   passwordSubmit.addEventListener('click', async () => {
     const enteredPassword = passwordInput.value;
     if (!enteredPassword) {
@@ -201,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (enteredHash === CORRECT_PASSWORD_HASH) {
       passwordModal.style.display = 'none';
-
       mainContent.classList.remove('hidden');
       restoreInputs();
       showOnboardingIfNeeded();
@@ -282,8 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
   onboardingDismiss.addEventListener('click', () => {
     console.log("OnboardingDismiss clicked");
     localStorage.setItem('onboardingDismissed', 'true');
-    // Remove the overlay from the DOM entirely
-    onboardingOverlay.remove();
+    // Completely remove the overlay node
+    onboardingOverlay.parentNode.removeChild(onboardingOverlay);
+    console.log("Overlay removed from DOM");
 
     previewBtn.classList.add('highlight');
     setTimeout(() => {
@@ -291,7 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 4000);
   });
 
-  // Keyboard shortcut: Ctrl+P or Cmd+P to trigger preview
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
       e.preventDefault();
