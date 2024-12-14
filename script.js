@@ -27,12 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const eventDateInput = document.getElementById('eventDate');
   const bookingMessageInput = document.getElementById('bookingMessage');
 
+  const onboardingOverlay = document.getElementById('onboardingOverlay');
+  const onboardingDismiss = document.getElementById('onboardingDismiss');
+
   let currentPdfBytes = null;
 
   // ===========================
   //         FUNCTIONS
   // ===========================
-
   function trapFocus(element) {
     const focusableSelectors = 'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])';
     const focusableElements = element.querySelectorAll(focusableSelectors);
@@ -125,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
       }
 
-      const response = await fetch(TEMPLATE_URL); // simplified fetch
+      const response = await fetch(TEMPLATE_URL);
 
       if (!response.ok) {
         showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted and accessible.", "error");
@@ -162,6 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function restoreInputs() {
+    const savedEventDate = localStorage.getItem('savedEventDate');
+    const savedBookingMessage = localStorage.getItem('savedBookingMessage');
+
+    if (savedEventDate) eventDateInput.value = savedEventDate;
+    if (savedBookingMessage) bookingMessageInput.value = savedBookingMessage;
+  }
+
+  function saveInputs() {
+    localStorage.setItem('savedEventDate', eventDateInput.value.trim());
+    localStorage.setItem('savedBookingMessage', bookingMessageInput.value.trim());
+  }
+
+  function showOnboardingIfNeeded() {
+    const onboardingDismissed = localStorage.getItem('onboardingDismissed');
+    if (!onboardingDismissed) {
+      onboardingOverlay.classList.remove('hidden');
+      // Highlight the preview button after onboarding is dismissed for guidance
+    }
+  }
+
   // ===========================
   //        EVENT LISTENERS
   // ===========================
@@ -180,6 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (enteredHash === CORRECT_PASSWORD_HASH) {
       passwordModal.style.display = 'none';
       mainContent.classList.remove('hidden');
+
+      restoreInputs();
+      showOnboardingIfNeeded();
+
       const firstInteractiveElement = mainContent.querySelector('input, textarea, button');
       if (firstInteractiveElement) firstInteractiveElement.focus();
     } else {
@@ -215,6 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = URL.createObjectURL(blob);
     pdfPreview.src = url;
 
+    saveInputs(); // Save current inputs to localStorage
+
     downloadBtn.style.display = 'inline-block';
     showFeedback("PDF preview generated successfully.", "success");
   });
@@ -249,6 +278,24 @@ document.addEventListener('DOMContentLoaded', () => {
     URL.revokeObjectURL(url);
 
     showFeedback("PDF downloaded successfully.", "success");
+  });
+
+  onboardingDismiss.addEventListener('click', () => {
+    onboardingOverlay.classList.add('hidden');
+    localStorage.setItem('onboardingDismissed', 'true');
+    // Highlight the preview button to guide the user
+    previewBtn.classList.add('highlight');
+    setTimeout(() => {
+      previewBtn.classList.remove('highlight');
+    }, 4000);
+  });
+
+  // Keyboard shortcut: Ctrl+P or Cmd+P to trigger preview
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      previewBtn.click();
+    }
   });
 
   function initializeModal() {
