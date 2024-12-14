@@ -1,181 +1,275 @@
 // script.js
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Password Handling
-  const passwordModal = document.getElementById('passwordModal');
-  const passwordSubmitBtn = document.getElementById('passwordSubmit');
-  const passwordInput = document.getElementById('passwordInput');
-  const passwordError = document.getElementById('passwordError');
-  const mainContent = document.getElementById('mainContent');
+// Define your password hash (SHA-256)
+const correctPasswordHash = "1bbd278588a207c4eb532ff9ce3f89cd24b5dcfedc101c804c77bd5dc59ca6d6"; // Provided hash
 
-  const VALID_PASSWORD = 'newpioneersquashclub'; // Replace with your actual password
+// Password Modal Elements
+const passwordModal = document.getElementById('passwordModal');
+const passwordInput = document.getElementById('passwordInput');
+const passwordSubmit = document.getElementById('passwordSubmit');
+const passwordError = document.getElementById('passwordError');
 
-  passwordSubmitBtn.addEventListener('click', () => {
-    const enteredPassword = passwordInput.value.trim();
+// Main Content Elements
+const mainContent = document.getElementById('mainContent');
+const previewBtn = document.getElementById('previewBtn');
+const downloadBtn = document.getElementById('downloadBtn');
+const downloadSpinner = document.getElementById('downloadSpinner');
+const feedbackMessage = document.getElementById('feedbackMessage');
+const pdfPreview = document.getElementById('pdfPreview');
 
-    if (enteredPassword === VALID_PASSWORD) {
-      // Correct password
-      passwordModal.style.display = 'none';
-      mainContent.style.display = 'flex';
-    } else {
-      // Incorrect password
-      passwordError.style.display = 'block';
-      passwordInput.value = '';
-      passwordInput.focus();
-    }
-  });
+// Get Form Inputs
+const eventDateInput = document.getElementById('eventDate');
+const bookingMessageInput = document.getElementById('bookingMessage');
 
-  // Optional: Allow pressing Enter to submit the password
-  passwordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      passwordSubmitBtn.click();
-    }
-  });
+let currentPdfBytes = null; // Will store the most recently generated PDF bytes
 
-  // PDF Generation and Other Functionalities
-  const eventDateInput = document.getElementById('eventDate');
-  const bookingMessageInput = document.getElementById('bookingMessage');
-  const previewBtn = document.getElementById('previewBtn');
-  const downloadBtn = document.getElementById('downloadBtn');
-  const downloadSpinner = document.getElementById('downloadSpinner');
-  const feedbackMessage = document.getElementById('feedbackMessage');
-  const pdfPreview = document.getElementById('pdfPreview');
+// Accessibility: Trap focus within the modal
+function trapFocus(element) {
+  const focusableElements = element.querySelectorAll('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])');
+  const firstFocusable = focusableElements[0];
+  const lastFocusable = focusableElements[focusableElements.length - 1];
 
-  previewBtn.addEventListener('click', async () => {
-    feedbackMessage.style.display = 'none';
-    const pdfBytes = await generatePDFBytes();
-
-    if (pdfBytes) {
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      pdfPreview.src = url;
-      downloadBtn.style.display = 'inline-block';
-    }
-  });
-
-  downloadBtn.addEventListener('click', async () => {
-    downloadBtn.style.display = 'none';
-    downloadSpinner.style.display = 'inline-block';
-
-    const pdfBytes = await generatePDFBytes();
-
-    if (pdfBytes) {
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${eventDateInput.value.trim()}_BookingForm.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showFeedback("PDF downloaded successfully!", "success");
-    }
-
-    downloadSpinner.style.display = 'none';
-  });
-
-  // Utility Functions
-  function showFeedback(message, type) {
-    feedbackMessage.textContent = message;
-    feedbackMessage.className = `feedback-message feedback-${type}`;
-    feedbackMessage.style.display = 'block';
-  }
-
-  function getFormattedSubmissionDate() {
-    const now = new Date();
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return now.toLocaleDateString(undefined, options);
-  }
-
-  // The generatePDFBytes function as provided
-  async function generatePDFBytes() {
-    try {
-      // Get the input values
-      const eventDate = eventDateInput.value.trim();
-      const bookingMessage = bookingMessageInput.value.trim();
-      const submissionDate = getFormattedSubmissionDate();
-
-      if (!eventDate || !bookingMessage) {
-        showFeedback("Please fill in both Event Date and Booking Request Message.", "error");
-        return null;
-      }
-
-      // Fetch the template PDF with updated settings
-      const response = await fetch('/squash-booking/template_3.pdf', {
-        method: 'GET',
-        mode: 'same-origin',
-        cache: 'no-cache',
-        headers: {
-          'Accept': 'application/pdf',
-          'Sec-Fetch-Mode': 'no-cors'
+  function handleTab(e) {
+    if (e.key === 'Tab') {
+      if (e.shiftKey) { // Shift + Tab
+        if (document.activeElement === firstFocusable) {
+          e.preventDefault();
+          lastFocusable.focus();
         }
-      });
-
-      if (!response.ok) {
-        showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted.", "error");
-        console.error("Error fetching template_3.pdf:", response.statusText);
-        return null;
+      } else { // Tab
+        if (document.activeElement === lastFocusable) {
+          e.preventDefault();
+          firstFocusable.focus();
+        }
       }
-      
-      const templateBytes = await response.arrayBuffer();
+    } else if (e.key === 'Escape') {
+      // Optional: Prevent closing modal with Escape
+      // To enable, uncomment the following lines
+      // passwordModal.style.display = 'none';
+      // mainContent.style.display = 'flex';
+      // mainContent.querySelector('input, textarea, button').focus();
+    }
+  }
 
-      const { PDFDocument, StandardFonts } = PDFLib;
-      const pdfDoc = await PDFDocument.load(templateBytes);
-      const form = pdfDoc.getForm();
+  element.addEventListener('keydown', handleTab);
+}
 
-      // Attempt to get form fields
-      const eventDateField = form.getTextField('EventDateField');
-      const submissionDateField = form.getTextField('SubmissionDateField');
-      const annexureField = form.getTextField('AnnexureField');
+// Initialize focus trapping on modal
+trapFocus(passwordModal);
 
-      // Verify that fields exist
-      if (!eventDateField || !submissionDateField || !annexureField) {
-        showFeedback("One or more form fields are missing in the template PDF.", "error");
-        console.error("Form fields not found. Please verify field names in 'template_3.pdf'.");
-        return null;
-      }
+// Set initial focus to the password input when modal opens
+passwordInput.focus();
 
-      // Try both font approaches
-      try {
-        // Approach 1: Using Standard Fonts
-        const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
-        
-        // Fill fields and set fonts
-        eventDateField.setText(eventDate);
-        eventDateField.setFont(courierFont);
-        eventDateField.setFontSize(12);
+// Function to hash the password using SHA-256
+async function hashPassword(password) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
 
-        submissionDateField.setText(submissionDate);
-        submissionDateField.setFont(courierFont);
-        submissionDateField.setFontSize(12);
+// Password Submission Handler
+passwordSubmit.addEventListener('click', async function() {
+  const enteredPassword = passwordInput.value;
+  if (!enteredPassword) {
+    passwordError.textContent = "Please enter a password.";
+    passwordError.style.display = 'block';
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordInput.focus();
+    return;
+  }
+  const enteredHash = await hashPassword(enteredPassword);
+  if (enteredHash === correctPasswordHash) {
+    passwordModal.style.display = 'none';
+    mainContent.style.display = 'flex';
+    mainContent.querySelector('input, textarea, button').focus(); // Set focus to first interactive element
+  } else {
+    passwordError.textContent = "Incorrect Password. Try again.";
+    passwordError.style.display = 'block';
+    passwordInput.setAttribute('aria-invalid', 'true');
+    passwordInput.focus();
+  }
+});
 
-        annexureField.setText(bookingMessage);
-        annexureField.setFont(courierFont);
-        annexureField.setFontSize(12);
-      } catch (fontError) {
-        console.error("Error setting standard font, trying alternate approach:", fontError);
-        
-        // Approach 2: Using custom Courier New font
-        // Note: PDFLib does not support embedding system fonts directly by name.
-        // You need to fetch the font file or use a supported method.
-        // For demonstration, we'll fallback without changing the font.
-        eventDateField.setText(eventDate);
-        submissionDateField.setText(submissionDate);
-        annexureField.setText(bookingMessage);
-      }
+// Allow pressing Enter to submit password
+passwordInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    passwordSubmit.click();
+  }
+});
 
-      // Flatten the form to make the fields non-editable
-      form.flatten();
+// Function to show feedback messages
+function showFeedback(message, type) {
+  feedbackMessage.textContent = message;
+  feedbackMessage.className = 'feedback-message';
+  if (type === 'success') {
+    feedbackMessage.classList.add('feedback-success');
+  } else if (type === 'error') {
+    feedbackMessage.classList.add('feedback-error');
+  }
+  feedbackMessage.style.display = 'block';
+  setTimeout(() => {
+    feedbackMessage.style.display = 'none';
+  }, 5000); // Hide after 5 seconds
+}
 
-      // Save PDF bytes
-      const pdfBytes = await pdfDoc.save();
-      return pdfBytes;
+// Function to show loading spinner
+function showSpinner(spinner) {
+  spinner.style.display = 'inline-block';
+}
 
-    } catch (error) {
-      showFeedback("An unexpected error occurred during PDF generation.", "error");
-      console.error("Error in generatePDFBytes:", error);
+// Function to hide loading spinner
+function hideSpinner(spinner) {
+  spinner.style.display = 'none';
+}
+
+// Utility to format the submission date as "dd MMM yyyy"
+function getFormattedSubmissionDate() {
+  const today = new Date();
+  const day = today.getDate(); // No padding for single-digit days
+  const month = today.toLocaleString('default', { month: 'short' }); // e.g., "Dec"
+  const year = today.getFullYear();
+  return `${day} ${month} ${year}`; 
+}
+
+// Function to generate PDF bytes
+async function generatePDFBytes() {
+  try {
+    // Get the input values
+    const eventDate = eventDateInput.value.trim();
+    const bookingMessage = bookingMessageInput.value.trim();
+    const submissionDate = getFormattedSubmissionDate();
+
+    if (!eventDate || !bookingMessage) {
+      showFeedback("Please fill in both Event Date and Booking Request Message.", "error");
       return null;
     }
+
+    // Fetch the template PDF with updated settings
+    const response = await fetch('/squash-booking/template_3.pdf', {
+      method: 'GET',
+      mode: 'same-origin',
+      cache: 'no-cache',
+      headers: {
+        'Accept': 'application/pdf',
+        'Sec-Fetch-Mode': 'no-cors'
+      }
+    });
+
+    if (!response.ok) {
+      showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted.", "error");
+      console.error("Error fetching template_3.pdf:", response.statusText);
+      return null;
+    }
+    
+    const templateBytes = await response.arrayBuffer();
+
+    const { PDFDocument, StandardFonts } = PDFLib;
+    const pdfDoc = await PDFDocument.load(templateBytes);
+    const form = pdfDoc.getForm();
+
+    // Attempt to get form fields
+    const eventDateField = form.getTextField('EventDateField');
+    const submissionDateField = form.getTextField('SubmissionDateField');
+    const annexureField = form.getTextField('AnnexureField');
+
+    // Verify that fields exist
+    if (!eventDateField || !submissionDateField || !annexureField) {
+      showFeedback("One or more form fields are missing in the template PDF.", "error");
+      console.error("Form fields not found. Please verify field names in 'template_3.pdf'.");
+      return null;
+    }
+
+    // Try both font approaches
+    try {
+      // Approach 1: Using Standard Fonts
+      const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
+      
+      // Fill fields and set fonts
+      eventDateField.setText(eventDate);
+      eventDateField.setFont(courierFont);
+      eventDateField.setFontSize(12);
+
+      submissionDateField.setText(submissionDate);
+      submissionDateField.setFont(courierFont);
+      submissionDateField.setFontSize(12);
+
+      annexureField.setText(bookingMessage);
+      annexureField.setFont(courierFont);
+      annexureField.setFontSize(12);
+    } catch (fontError) {
+      console.error("Error setting standard font, trying alternate approach:", fontError);
+      
+      // Approach 2: Using custom Courier New font
+      const courierNewFont = await pdfDoc.embedFont('Courier New');
+      
+      // Fill fields and set fonts
+      eventDateField.setText(eventDate);
+      eventDateField.setFont(courierNewFont);
+      eventDateField.setFontSize(12);
+
+      submissionDateField.setText(submissionDate);
+      submissionDateField.setFont(courierNewFont);
+      submissionDateField.setFontSize(12);
+
+      annexureField.setText(bookingMessage);
+      annexureField.setFont(courierNewFont);
+      annexureField.setFontSize(12);
+    }
+
+    // Flatten the form to make the fields non-editable
+    form.flatten();
+
+    // Save PDF bytes
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+
+  } catch (error) {
+    showFeedback("An unexpected error occurred during PDF generation.", "error");
+    console.error("Error in generatePDFBytes:", error);
+    return null;
   }
+}
+
+// Preview Button Click Handler
+previewBtn.addEventListener('click', async () => {
+  // Hide previous feedback messages
+  showFeedback("Generating PDF preview...", "success");
+
+  const pdfBytes = await generatePDFBytes();
+  if (!pdfBytes) return;
+  currentPdfBytes = pdfBytes;
+
+  // Show the PDF in the iframe
+  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  pdfPreview.src = url;
+
+  // Show the download button now that we have a valid preview
+  downloadBtn.style.display = 'inline-block';
+});
+
+// Download Button Click Handler
+downloadBtn.addEventListener('click', () => {
+  if (!currentPdfBytes) {
+    showFeedback("No PDF available to download. Please generate a preview first.", "error");
+    return;
+  }
+
+  // Use the event date to build the filename
+  const eventDate = eventDateInput.value.trim();
+  const formattedEventDate = eventDate.replace(/\s+/g, ''); // Remove all spaces
+  const filename = `NP_CCAB_Booking_${formattedEventDate}.pdf`;
+
+  const blob = new Blob([currentPdfBytes], { type: 'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  showFeedback("PDF downloaded successfully.", "success");
 });
