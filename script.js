@@ -148,10 +148,10 @@ async function generatePDFBytes() {
     }
 
     // Fetch the template PDF
-    const response = await fetch('template.pdf');
+    const response = await fetch('template_3.pdf');
     if (!response.ok) {
-      showFeedback("Failed to fetch the template PDF. Please ensure 'template.pdf' is correctly hosted.", "error");
-      console.error("Error fetching template.pdf:", response.statusText);
+      showFeedback("Failed to fetch the template PDF. Please ensure 'template_3.pdf' is correctly hosted.", "error");
+      console.error("Error fetching template_3.pdf:", response.statusText);
       return null;
     }
     const templateBytes = await response.arrayBuffer();
@@ -168,7 +168,7 @@ async function generatePDFBytes() {
     // Verify that fields exist
     if (!eventDateField || !submissionDateField || !annexureField) {
       showFeedback("One or more form fields are missing in the template PDF.", "error");
-      console.error("Form fields not found. Please verify field names in 'template.pdf'.");
+      console.error("Form fields not found. Please verify field names in 'template_3.pdf'.");
       return null;
     }
 
