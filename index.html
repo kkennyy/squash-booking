@@ -52,17 +52,18 @@
       margin-top: 0;
       font-size: 1.5em;
       text-align: center;
+      font-family: Arial, sans-serif;
     }
 
     label {
       margin-top: 1em;
       font-size: 12px;
-      font-family: Helvetica, sans-serif;
+      font-family: Arial, sans-serif;
     }
 
     input[type="text"] {
       width: 100%;
-      font-family: Helvetica, sans-serif;
+      font-family: Arial, sans-serif;
       font-size: 12px;
       padding: 0.5em;
       box-sizing: border-box;
@@ -73,7 +74,7 @@
 
     textarea#bookingMessage {
       width: 100%;
-      font-family: Consolas, Monaco, "Courier New", Courier, monospace;
+      font-family: Arial, sans-serif;
       font-size: 14px;
       line-height: 1.4;
       padding: 0.5em;
@@ -95,7 +96,7 @@
 
     button {
       padding: 0.5em 1em;
-      font-family: Helvetica, sans-serif;
+      font-family: Arial, sans-serif;
       font-size: 12px;
       cursor: pointer;
       border: none;
@@ -123,7 +124,7 @@
       flex: 1;
       margin-top: 1em;
       border-radius: 4px;
-      font-family: Consolas, Monaco, "Courier New", Courier, monospace;
+      font-family: Arial, sans-serif;
     }
 
     /* Password Modal Styles */
@@ -147,6 +148,7 @@
       text-align: center;
       width: 300px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      font-family: Arial, sans-serif;
     }
 
     #passwordModal input {
@@ -154,6 +156,7 @@
       padding: 0.5em;
       margin-top: 1em;
       font-size: 16px;
+      font-family: Arial, sans-serif;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -168,6 +171,7 @@
       background-color: #28a745;
       color: #fff;
       transition: background-color 0.3s ease;
+      font-family: Arial, sans-serif;
     }
 
     #passwordModal button:hover, #passwordModal button:focus {
@@ -180,6 +184,7 @@
       display: none;
       margin-top: 0.5em;
       font-size: 14px;
+      font-family: Arial, sans-serif;
     }
 
     /* Loading Spinner */
@@ -192,6 +197,7 @@
       animation: spin 2s linear infinite;
       display: none;
       margin-left: 0.5em;
+      font-family: Arial, sans-serif;
     }
 
     @keyframes spin {
@@ -204,6 +210,7 @@
       margin-top: 1em;
       font-size: 14px;
       display: none;
+      font-family: Arial, sans-serif;
     }
 
     .feedback-success {
@@ -234,7 +241,7 @@
   <!-- Password Modal -->
   <div id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle" aria-modal="true">
     <div>
-      <h2 id="passwordModalTitle">Enter Password</h2>
+      <h2 id="passwordModalTitle" style="font-family: Arial, sans-serif;">Enter Password</h2>
       <input type="password" id="passwordInput" placeholder="Password" aria-label="Password" />
       <br />
       <button id="passwordSubmit">Submit</button>
@@ -245,7 +252,7 @@
   <!-- Main Content -->
   <div id="mainContent" style="display: none;">
     <div class="left-panel">
-      <h1>Generate Monthly Booking Form</h1>
+      <h1 style="font-family: Arial, sans-serif;">Generate Monthly Booking Form</h1>
       <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
       <input type="text" id="eventDate" placeholder="e.g. Feb 2025" />
 
@@ -265,7 +272,7 @@
     </div>
 
     <div class="right-panel">
-      <h2>Preview</h2>
+      <h2 style="font-family: Arial, sans-serif;">Preview</h2>
       <iframe id="pdfPreview" title="PDF Preview"></iframe>
     </div>
   </div>
