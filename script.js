@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const passwordError = document.getElementById('passwordError');
   const mainContent = document.getElementById('mainContent');
 
-  const VALID_PASSWORD = 'your_secure_password'; // Replace with your actual password
+  const VALID_PASSWORD = 'newpioneersquashclub'; // Replace with your actual password
 
   passwordSubmitBtn.addEventListener('click', () => {
     const enteredPassword = passwordInput.value.trim();
