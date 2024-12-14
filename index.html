@@ -222,7 +222,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 999;
+      z-index: 2000; /* Increased z-index */
       color: #fff;
       font-size: 14px;
       padding: 2em;
@@ -244,7 +244,6 @@
       margin-bottom: 0.5em;
     }
 
-    /* Highlighting the preview button once onboarded */
     .highlight {
       animation: highlightGlow 2s ease-in-out infinite alternate;
     }
@@ -289,7 +288,8 @@
         <p>2. Click "Preview" (or press Ctrl+P) to generate a PDF preview.</p>
         <p>3. Once satisfied, download the PDF.</p>
         <p>We’ve restored your inputs from previous sessions if available.</p>
-        <button id="onboardingDismiss">Got it!</button>
+        <!-- Added type="button" to ensure it doesn't interfere with forms -->
+        <button id="onboardingDismiss" type="button">Got it!</button>
       </div>
     </div>
 
