@@ -3,268 +3,607 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Squash Court Booking PDF Generator</title>
+  <title>NP Squash Court Booking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --color-bg: #f8f7f4;
+      --color-surface: #ffffff;
+      --color-surface-elevated: #ffffff;
+      --color-border: #e8e6e1;
+      --color-border-subtle: #f0eeea;
+      --color-text: #1a1a1a;
+      --color-text-secondary: #6b6b6b;
+      --color-text-tertiary: #999999;
+      --color-accent: #2563eb;
+      --color-accent-hover: #1d4ed8;
+      --color-accent-subtle: #eff6ff;
+      --color-success: #059669;
+      --color-success-bg: #ecfdf5;
+      --color-error: #dc2626;
+      --color-error-bg: #fef2f2;
+      --color-warning-bg: #fffbeb;
+      --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
+      --transition-fast: 150ms ease;
+      --transition-medium: 250ms ease;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #f5f5f5;
-    }
-
-    /* Apply Arial to all form elements explicitly */
-    body, input[type="text"], textarea, button, label {
-      font-family: Arial, sans-serif;
-    }
-
-    main {
-      display: flex;
-      width: 90%;
-      height: 90vh;
-      background-color: #fff;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    section {
-      padding: 1em;
-      box-sizing: border-box;
-    }
-
-    .left-panel {
-      width: 50%;
-      border-right: 1px solid #ccc;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .right-panel {
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-
-    h1 {
-      margin-top: 0;
-      font-size: 1.5em;
-      text-align: center;
-    }
-
-    label {
-      margin-top: 1em;
-      font-size: 12px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      font-size: 12px;
-      padding: 0.5em;
-      box-sizing: border-box;
-      margin-top: 0.5em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    /* Ensure textarea has Arial */
-    textarea#bookingMessage {
-      width: 100%;
-      font-family: Arial, sans-serif; 
-      font-size: 12px;
-      line-height: 1.4;
-      padding: 0.5em;
-      box-sizing: border-box;
-      margin-top: 0.5em;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      flex-grow: 1;
-      resize: vertical;
-      min-height: 150px;
-    }
-
-    .button-container {
-      margin-top: 1em;
-      display: flex;
-      gap: 1em;
-    }
-
-    button {
-      padding: 0.5em 1em;
-      font-size: 12px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      background-color: #007BFF;
-      color: #fff;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover, button:focus {
-      background-color: #0056b3;
-      outline: none;
-    }
-
-    button:focus, input:focus, textarea:focus {
-      outline: 2px solid #0056b3;
-      outline-offset: 2px;
-    }
-
-    iframe#pdfPreview {
-      border: 1px solid #ccc;
-      width: 100%;
-      flex: 1;
-      margin-top: 1em;
-      border-radius: 4px;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.5;
+      color: var(--color-text);
+      background: var(--color-bg);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* Password Modal */
     #passwordModal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.8);
+      inset: 0;
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      padding: 1.5rem;
     }
 
-    #passwordModal div {
-      background: #fff;
-      padding: 2em;
-      border-radius: 8px;
+    .login-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 380px;
+      padding: 2.5rem;
       text-align: center;
-      width: 300px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      animation: slideUp 0.4s ease;
     }
 
-    #passwordModal input {
-      width: 80%;
-      padding: 0.5em;
-      margin-top: 1em;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    #passwordModal button {
-      margin-top: 1em;
-      padding: 0.5em 1em;
-      font-size: 16px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-      background-color: #28a745;
-      color: #fff;
-      transition: background-color 0.3s ease;
+    .login-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--color-accent-subtle);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
     }
 
-    #passwordModal button:hover, #passwordModal button:focus {
-      background-color: #218838;
+    .login-icon svg {
+      width: 28px;
+      height: 28px;
+      color: var(--color-accent);
+    }
+
+    .login-card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.375rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .login-card p {
+      margin: 0 0 1.5rem;
+      color: var(--color-text-secondary);
+      font-size: 0.9375rem;
+    }
+
+    .password-input-group {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .password-input-group input {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .password-input-group input:focus {
       outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .password-input-group input[aria-invalid="true"] {
+      border-color: var(--color-error);
     }
 
     #passwordError {
-      color: red;
+      color: var(--color-error);
+      font-size: 0.8125rem;
+      margin-top: 0.5rem;
       display: none;
-      margin-top: 0.5em;
-      font-size: 14px;
     }
 
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: white;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-hover);
+    }
+
+    .btn-primary:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1.5px solid var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-bg);
+      border-color: var(--color-text-tertiary);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Main Layout */
+    .hidden {
+      display: none !important;
+    }
+
+    #mainContent {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      min-height: 100vh;
+    }
+
+    /* Left Panel - Form */
+    .form-panel {
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .brand {
+      margin-bottom: 2rem;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 100px;
+      margin-bottom: 0.75rem;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .brand-subtitle {
+      margin: 0.25rem 0 0;
+      font-size: 0.875rem;
+      color: var(--color-text-secondary);
+    }
+
+    /* Form Fields */
+    .form-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .field-label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--color-text);
+    }
+
+    .field-hint {
+      font-size: 0.75rem;
+      color: var(--color-text-tertiary);
+    }
+
+    .field input[type="text"],
+    .field textarea {
+      padding: 0.75rem 1rem;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .field input[type="text"]:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px var(--color-accent-subtle);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 200px;
+      line-height: 1.6;
+    }
+
+    .field-grow {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field-grow textarea {
+      flex: 1;
+    }
+
+    /* Actions */
+    .form-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--color-border-subtle);
+    }
+
+    .btn-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Spinner */
     .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #007BFF;
+      width: 18px;
+      height: 18px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 2s linear infinite;
-      display: none;
-      margin-left: 0.5em;
+      animation: spin 0.6s linear infinite;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
 
-    .feedback-message {
-      margin-top: 1em;
-      font-size: 14px;
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1.25rem;
+      background: var(--color-surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      border-left: 3px solid var(--color-text-tertiary);
+      font-size: 0.875rem;
+      animation: toastIn 0.3s ease;
+      max-width: 360px;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .toast-exit {
+      animation: toastOut 0.2s ease forwards;
+    }
+
+    @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+    }
+
+    .toast-success {
+      border-left-color: var(--color-success);
+    }
+
+    .toast-error {
+      border-left-color: var(--color-error);
+    }
+
+    .toast-info {
+      border-left-color: var(--color-accent);
+    }
+
+    .toast-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon { color: var(--color-success); }
+    .toast-error .toast-icon { color: var(--color-error); }
+    .toast-info .toast-icon { color: var(--color-accent); }
+
+    /* Right Panel - Preview */
+    .preview-panel {
+      background: var(--color-bg);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .preview-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .preview-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      font-size: 0.75rem;
+      font-weight: 500;
+      border-radius: 100px;
+    }
+
+    .preview-frame-wrapper {
+      flex: 1;
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .preview-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-tertiary);
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .preview-empty-icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    .preview-empty h3 {
+      margin: 0 0 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+    }
+
+    .preview-empty p {
+      margin: 0;
+      font-size: 0.875rem;
+    }
+
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.375rem;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--color-text-secondary);
+    }
+
+    #pdfPreview {
+      flex: 1;
+      border: none;
+      width: 100%;
       display: none;
     }
 
-    .feedback-success {
-      color: green;
-    }
-
-    .feedback-error {
-      color: red;
-    }
-
-    .hidden {
-      display: none;
+    #pdfPreview.active {
+      display: block;
     }
 
     /* Onboarding Overlay */
     #onboardingOverlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.75);
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 2000;
-      color: #fff;
-      font-size: 14px;
-      padding: 2em;
-      box-sizing: border-box;
+      padding: 1.5rem;
     }
 
-    #onboardingOverlayContent {
-      max-width: 400px;
-      text-align: center;
+    .onboarding-card {
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 2.5rem;
+      animation: slideUp 0.4s ease;
     }
 
-    #onboardingOverlayContent button {
-      margin-top: 1em;
-      background-color: #28a745;
-      font-size: 14px;
+    .onboarding-card h2 {
+      margin: 0 0 1rem;
+      font-size: 1.375rem;
+      font-weight: 600;
     }
 
-    #onboardingOverlay h2 {
-      margin-bottom: 0.5em;
+    .onboarding-steps {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.5rem;
     }
 
-    .highlight {
-      animation: highlightGlow 2s ease-in-out infinite alternate;
+    .onboarding-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--color-border-subtle);
     }
 
-    @keyframes highlightGlow {
-      0% { box-shadow: 0 0 0px #007BFF; }
-      100% { box-shadow: 0 0 10px #007BFF; }
+    .onboarding-steps li:last-child {
+      border-bottom: none;
     }
 
-    @media (max-width: 768px) {
-      main {
-        flex-direction: column;
+    .step-number {
+      width: 24px;
+      height: 24px;
+      background: var(--color-accent);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 0.9375rem;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .onboarding-note {
+      background: var(--color-warning-bg);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8125rem;
+      color: #92400e;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      #mainContent {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
       }
-      .left-panel, .right-panel {
-        width: 100%;
-        height: 50%;
+
+      .form-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+        max-height: 50vh;
       }
-      iframe {
-        height: 200px;
+
+      .preview-panel {
+        min-height: 50vh;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .form-panel,
+      .preview-panel {
+        padding: 1.25rem;
+      }
+
+      .login-card,
+      .onboarding-card {
+        padding: 1.5rem;
       }
     }
   </style>
@@ -273,56 +612,120 @@
 
   <!-- Password Modal -->
   <div id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle" aria-modal="true">
-    <div>
-      <h2 id="passwordModalTitle">Enter Password</h2>
-      <input type="password" id="passwordInput" placeholder="Password" aria-label="Password" />
-      <br />
-      <button id="passwordSubmit">Submit</button>
-      <p id="passwordError">Incorrect Password. Try again.</p>
+    <div class="login-card">
+      <div class="login-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
+      </div>
+      <h2 id="passwordModalTitle">Welcome back</h2>
+      <p>Enter the password to access the booking form generator.</p>
+      <div class="password-input-group">
+        <input type="password" id="passwordInput" placeholder="Enter password" aria-label="Password" />
+        <p id="passwordError">Incorrect password. Please try again.</p>
+      </div>
+      <button id="passwordSubmit" class="btn btn-primary">
+        Continue
+      </button>
     </div>
   </div>
 
-  <!-- 
-    Main content is hidden by default so user only sees password modal initially. 
-    Once correct password is entered, we remove the hidden class.
-  -->
+  <!-- Main Content -->
   <main id="mainContent" class="hidden" aria-label="Main Content">
+
+    <!-- Onboarding Overlay -->
     <div id="onboardingOverlay" aria-live="polite">
-      <div id="onboardingOverlayContent">
-        <h2>Welcome!</h2>
-        <p>1. Enter your Event Date and Booking Request Message.</p>
-        <p>2. Click "Preview" (or press Ctrl+P) to generate a PDF preview.</p>
-        <p>3. Once satisfied, download the PDF.</p>
-        <p>We’ve restored your inputs from previous sessions if available.</p>
-        <button id="onboardingDismiss" type="button">Got it!</button>
+      <div class="onboarding-card">
+        <h2>Quick Start Guide</h2>
+        <ol class="onboarding-steps">
+          <li>
+            <span class="step-number">1</span>
+            <span class="step-text">Enter the <strong>Event Date</strong> (e.g. "Feb 2025") for your booking month.</span>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <span class="step-text">Fill in the <strong>Booking Message</strong> with your requested court slots and times.</span>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <span class="step-text">Click <strong>Preview</strong> to generate the PDF, then download when ready.</span>
+          </li>
+        </ol>
+        <div class="onboarding-note">
+          Your inputs are automatically saved and will be restored in future sessions.
+        </div>
+        <button id="onboardingDismiss" class="btn btn-primary" type="button">
+          Get Started
+        </button>
       </div>
     </div>
 
-    <section class="left-panel" aria-label="Form Section">
-      <h1>Generate Monthly Booking Form</h1>
-      <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
-      <input type="text" id="eventDate" placeholder="e.g. Feb 2025" aria-required="true" />
+    <!-- Form Panel -->
+    <section class="form-panel" aria-label="Form Section">
+      <div class="brand">
+        <div class="brand-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16 10-4 4-4-4"/></svg>
+          CCAB Courts
+        </div>
+        <h1>Monthly Booking Form</h1>
+        <p class="brand-subtitle">New Pioneer Squash Club</p>
+      </div>
 
-      <label for="bookingMessage">Booking Request Message:</label>
-      <textarea id="bookingMessage" placeholder="Enter your booking message here..." aria-label="Booking Request Message" aria-required="true"></textarea>
+      <div class="form-section">
+        <div class="field">
+          <label class="field-label" for="eventDate">Event Date</label>
+          <input type="text" id="eventDate" placeholder="e.g. Feb 2025" aria-required="true" />
+          <span class="field-hint">Month and year for your booking request</span>
+        </div>
 
-      <div class="button-container">
-        <button id="previewBtn" aria-label="Generate PDF Preview">Preview</button>
-        <div style="display: flex; align-items: center;">
-          <button id="downloadBtn" style="display:none;" aria-label="Download PDF">Download PDF</button>
-          <div class="spinner" id="downloadSpinner" role="status" aria-live="assertive"></div>
-          <div class="spinner" id="previewSpinner" role="status" aria-live="assertive"></div>
+        <div class="field field-grow">
+          <label class="field-label" for="bookingMessage">Booking Request Message</label>
+          <textarea id="bookingMessage" placeholder="Enter your requested court slots, dates, and times here..." aria-label="Booking Request Message" aria-required="true"></textarea>
         </div>
       </div>
 
-      <div class="feedback-message" id="feedbackMessage" aria-live="polite"></div>
+      <div class="form-actions">
+        <button id="previewBtn" class="btn btn-primary" aria-label="Generate PDF Preview">
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          <span id="previewBtnText">Preview</span>
+        </button>
+        <button id="downloadBtn" class="btn btn-secondary hidden" aria-label="Download PDF">
+          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          <span id="downloadBtnText">Download PDF</span>
+        </button>
+      </div>
     </section>
 
-    <section class="right-panel" aria-label="PDF Preview Section">
-      <h2>Preview</h2>
-      <iframe id="pdfPreview" title="PDF Preview" aria-label="PDF Preview"></iframe>
+    <!-- Preview Panel -->
+    <section class="preview-panel" aria-label="PDF Preview Section">
+      <div class="preview-header">
+        <span class="preview-title">Document Preview</span>
+        <span id="previewBadge" class="preview-badge hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Ready
+        </span>
+      </div>
+      <div class="preview-frame-wrapper">
+        <div id="previewEmpty" class="preview-empty">
+          <svg class="preview-empty-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+          <h3>No preview yet</h3>
+          <p>Fill in the form and click Preview or press <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">P</kbd></p>
+        </div>
+        <iframe id="pdfPreview" title="PDF Preview" aria-label="PDF Preview"></iframe>
+      </div>
     </section>
+
   </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
   <!-- Load pdf-lib from CDN -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>

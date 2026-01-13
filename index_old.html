@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squash Court Booking PDF Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f5f5f5;
+    }
+
+    /* Apply Arial to all form elements explicitly */
+    body, input[type="text"], textarea, button, label {
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      display: flex;
+      width: 90%;
+      height: 90vh;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    section {
+      padding: 1em;
+      box-sizing: border-box;
+    }
+
+    .left-panel {
+      width: 50%;
+      border-right: 1px solid #ccc;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-panel {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.5em;
+      text-align: center;
+    }
+
+    label {
+      margin-top: 1em;
+      font-size: 12px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      font-size: 12px;
+      padding: 0.5em;
+      box-sizing: border-box;
+      margin-top: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Ensure textarea has Arial */
+    textarea#bookingMessage {
+      width: 100%;
+      font-family: Arial, sans-serif; 
+      font-size: 12px;
+      line-height: 1.4;
+      padding: 0.5em;
+      box-sizing: border-box;
+      margin-top: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      flex-grow: 1;
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    .button-container {
+      margin-top: 1em;
+      display: flex;
+      gap: 1em;
+    }
+
+    button {
+      padding: 0.5em 1em;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #007BFF;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover, button:focus {
+      background-color: #0056b3;
+      outline: none;
+    }
+
+    button:focus, input:focus, textarea:focus {
+      outline: 2px solid #0056b3;
+      outline-offset: 2px;
+    }
+
+    iframe#pdfPreview {
+      border: 1px solid #ccc;
+      width: 100%;
+      flex: 1;
+      margin-top: 1em;
+      border-radius: 4px;
+    }
+
+    /* Password Modal */
+    #passwordModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #passwordModal div {
+      background: #fff;
+      padding: 2em;
+      border-radius: 8px;
+      text-align: center;
+      width: 300px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    #passwordModal input {
+      width: 80%;
+      padding: 0.5em;
+      margin-top: 1em;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #passwordModal button {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #28a745;
+      color: #fff;
+      transition: background-color 0.3s ease;
+    }
+
+    #passwordModal button:hover, #passwordModal button:focus {
+      background-color: #218838;
+      outline: none;
+    }
+
+    #passwordError {
+      color: red;
+      display: none;
+      margin-top: 0.5em;
+      font-size: 14px;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #007BFF;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 2s linear infinite;
+      display: none;
+      margin-left: 0.5em;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .feedback-message {
+      margin-top: 1em;
+      font-size: 14px;
+      display: none;
+    }
+
+    .feedback-success {
+      color: green;
+    }
+
+    .feedback-error {
+      color: red;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Onboarding Overlay */
+    #onboardingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      color: #fff;
+      font-size: 14px;
+      padding: 2em;
+      box-sizing: border-box;
+    }
+
+    #onboardingOverlayContent {
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #onboardingOverlayContent button {
+      margin-top: 1em;
+      background-color: #28a745;
+      font-size: 14px;
+    }
+
+    #onboardingOverlay h2 {
+      margin-bottom: 0.5em;
+    }
+
+    .highlight {
+      animation: highlightGlow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes highlightGlow {
+      0% { box-shadow: 0 0 0px #007BFF; }
+      100% { box-shadow: 0 0 10px #007BFF; }
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+      .left-panel, .right-panel {
+        width: 100%;
+        height: 50%;
+      }
+      iframe {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Password Modal -->
+  <div id="passwordModal" role="dialog" aria-labelledby="passwordModalTitle" aria-modal="true">
+    <div>
+      <h2 id="passwordModalTitle">Enter Password</h2>
+      <input type="password" id="passwordInput" placeholder="Password" aria-label="Password" />
+      <br />
+      <button id="passwordSubmit">Submit</button>
+      <p id="passwordError">Incorrect Password. Try again.</p>
+    </div>
+  </div>
+
+  <!-- 
+    Main content is hidden by default so user only sees password modal initially. 
+    Once correct password is entered, we remove the hidden class.
+  -->
+  <main id="mainContent" class="hidden" aria-label="Main Content">
+    <div id="onboardingOverlay" aria-live="polite">
+      <div id="onboardingOverlayContent">
+        <h2>Welcome!</h2>
+        <p>1. Enter your Event Date and Booking Request Message.</p>
+        <p>2. Click "Preview" (or press Ctrl+P) to generate a PDF preview.</p>
+        <p>3. Once satisfied, download the PDF.</p>
+        <p>We’ve restored your inputs from previous sessions if available.</p>
+        <button id="onboardingDismiss" type="button">Got it!</button>
+      </div>
+    </div>
+
+    <section class="left-panel" aria-label="Form Section">
+      <h1>Generate Monthly Booking Form</h1>
+      <label for="eventDate">Event Date (e.g. "Feb 2025"):</label>
+      <input type="text" id="eventDate" placeholder="e.g. Feb 2025" aria-required="true" />
+
+      <label for="bookingMessage">Booking Request Message:</label>
+      <textarea id="bookingMessage" placeholder="Enter your booking message here..." aria-label="Booking Request Message" aria-required="true"></textarea>
+
+      <div class="button-container">
+        <button id="previewBtn" aria-label="Generate PDF Preview">Preview</button>
+        <div style="display: flex; align-items: center;">
+          <button id="downloadBtn" style="display:none;" aria-label="Download PDF">Download PDF</button>
+          <div class="spinner" id="downloadSpinner" role="status" aria-live="assertive"></div>
+          <div class="spinner" id="previewSpinner" role="status" aria-live="assertive"></div>
+        </div>
+      </div>
+
+      <div class="feedback-message" id="feedbackMessage" aria-live="polite"></div>
+    </section>
+
+    <section class="right-panel" aria-label="PDF Preview Section">
+      <h2>Preview</h2>
+      <iframe id="pdfPreview" title="PDF Preview" aria-label="PDF Preview"></iframe>
+    </section>
+  </main>
+
+  <!-- Load pdf-lib from CDN -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <!-- Link to external script.js -->
+  <script src="script.js"></script>
+</body>
+</html>
