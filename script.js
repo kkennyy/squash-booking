@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.pdfPreview.classList.add('active');
     elements.previewEmpty.style.display = 'none';
     elements.previewBadge.classList.remove('hidden');
-    elements.downloadBtn.classList.remove('hidden');
+    elements.downloadBtn.disabled = false;
     
     saveInputs();
     showToast('PDF preview generated successfully.', 'success');
