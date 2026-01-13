@@ -89,17 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Button State Management
-  function setButtonLoading(button, textElement, isLoading, loadingText = 'Processing...') {
-    if (isLoading) {
-      button.disabled = true;
-      button._originalText = textElement.textContent;
-      textElement.innerHTML = `<span class="spinner"></span>`;
-    } else {
-      button.disabled = false;
-      textElement.textContent = button._originalText || textElement.textContent;
-    }
+function setButtonLoading(button, textElement, isLoading, loadingText = 'Processing...') {
+  if (isLoading) {
+    button.disabled = true;
+    button._originalText = textElement.textContent;
+    textElement.innerHTML = `<span class="spinner"></span>${loadingText}`;
+  } else {
+    button.disabled = false;
+    textElement.textContent = button._originalText || textElement.textContent;
   }
-
+}
   // PDF Generation
   async function generatePDFBytes() {
     const eventDate = elements.eventDateInput.value.trim();
