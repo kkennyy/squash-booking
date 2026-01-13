@@ -1,4 +1,4 @@
-// script.js
+// script2.js
 
 document.addEventListener('DOMContentLoaded', () => {
   // Configuration
@@ -36,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     downloadBtnText: document.getElementById('downloadBtnText'),
     
     // Preview
-    pdfPreview: document.getElementById('pdfPreview'),
+    pdfCanvas: document.getElementById('pdfCanvas'),
+    pdfCanvasContainer: document.getElementById('pdfCanvasContainer'),
     previewEmpty: document.getElementById('previewEmpty'),
     previewBadge: document.getElementById('previewBadge'),
     
@@ -89,16 +90,57 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Button State Management
-function setButtonLoading(button, textElement, isLoading, loadingText = 'Processing...') {
-  if (isLoading) {
-    button.disabled = true;
-    button._originalText = textElement.textContent;
-    textElement.innerHTML = `<span class="spinner"></span>${loadingText}`;
-  } else {
-    button.disabled = false;
-    textElement.textContent = button._originalText || textElement.textContent;
+  function setButtonLoading(button, textElement, isLoading, loadingText = 'Processing...') {
+    if (isLoading) {
+      button.disabled = true;
+      button._originalText = textElement.textContent;
+      textElement.innerHTML = `<span class="spinner"></span>${loadingText}`;
+    } else {
+      button.disabled = false;
+      textElement.textContent = button._originalText || textElement.textContent;
+    }
   }
-}
+
+  // PDF Canvas Rendering
+  async function renderPDFToCanvas(pdfBytes) {
+    try {
+      const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+      const pdf = await loadingTask.promise;
+      
+      // Get first page
+      const page = await pdf.getPage(1);
+      
+      // Calculate scale for good quality on all devices
+      const canvas = elements.pdfCanvas;
+      const context = canvas.getContext('2d');
+      
+      // Use device pixel ratio for sharp rendering on high-DPI screens
+      const scale = window.devicePixelRatio || 1.5;
+      const viewport = page.getViewport({ scale: scale });
+      
+      // Set canvas dimensions
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      
+      // Set display size (CSS pixels)
+      canvas.style.width = Math.floor(viewport.width / scale) + 'px';
+      canvas.style.height = Math.floor(viewport.height / scale) + 'px';
+      
+      // Render PDF page to canvas
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport
+      };
+      
+      await page.render(renderContext).promise;
+      return true;
+    } catch (error) {
+      console.error('Error rendering PDF to canvas:', error);
+      showToast('Failed to render PDF preview.', 'error');
+      return false;
+    }
+  }
+
   // PDF Generation
   async function generatePDFBytes() {
     const eventDate = elements.eventDateInput.value.trim();
@@ -234,17 +276,18 @@ function setButtonLoading(button, textElement, isLoading, loadingText = 'Process
 
     currentPdfBytes = pdfBytes;
 
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
+    // Render PDF to canvas
+    const renderSuccess = await renderPDFToCanvas(pdfBytes);
     
-    elements.pdfPreview.src = url;
-    elements.pdfPreview.classList.add('active');
-    elements.previewEmpty.style.display = 'none';
-    elements.previewBadge.classList.remove('hidden');
-    elements.downloadBtn.disabled = false;
-    
-    saveInputs();
-    showToast('PDF preview generated successfully.', 'success');
+    if (renderSuccess) {
+      elements.pdfCanvasContainer.style.display = 'block';
+      elements.previewEmpty.style.display = 'none';
+      elements.previewBadge.classList.remove('hidden');
+      elements.downloadBtn.disabled = false;
+      
+      saveInputs();
+      showToast('PDF preview generated successfully.', 'success');
+    }
   }
 
   async function handleDownload() {

@@ -492,15 +492,19 @@
       color: var(--color-text-secondary);
     }
 
-    #pdfPreview {
+    #pdfCanvasContainer {
       flex: 1;
-      border: none;
       width: 100%;
-      display: none;
+      height: 100%;
+      overflow: auto;
+      background: #525659;
     }
 
-    #pdfPreview.active {
+    #pdfCanvas {
       display: block;
+      margin: 0 auto;
+      max-width: 100%;
+      height: auto;
     }
 
     /* Onboarding Overlay */
@@ -720,7 +724,9 @@
           <h3>No preview yet</h3>
           <p>Fill in the form and click Preview or press <kbd class="kbd">Ctrl</kbd> + <kbd class="kbd">P</kbd></p>
         </div>
-        <iframe id="pdfPreview" title="PDF Preview" aria-label="PDF Preview"></iframe>
+        <div id="pdfCanvasContainer" style="display: none; width: 100%; height: 100%; overflow: auto; background: #525659;">
+          <canvas id="pdfCanvas" style="display: block; margin: 0 auto;"></canvas>
+        </div>
       </div>
     </section>
 
@@ -731,6 +737,12 @@
 
   <!-- Load pdf-lib from CDN -->
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <!-- Load PDF.js for canvas rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    // Set PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
   <!-- Link to external script.js -->
   <script src="script.js"></script>
 </body>
