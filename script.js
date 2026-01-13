@@ -1,4 +1,4 @@
-// script2.js
+// script.js
 
 document.addEventListener('DOMContentLoaded', () => {
   // Configuration
